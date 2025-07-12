@@ -3,3 +3,7 @@ node_modules
 /.cache
 /build
 .env
+
+# Compiled server files (but keep types directory)
+/build/server.js
+/build/server.js.map

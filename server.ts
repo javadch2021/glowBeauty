@@ -2,8 +2,10 @@ import { createRequestHandler } from "@remix-run/express";
 import compression from "compression";
 import express from "express";
 import morgan from "morgan";
+import type { ViteDevServer } from "vite";
+import type { ServerBuild } from "@remix-run/node";
 
-const viteDevServer =
+const viteDevServer: ViteDevServer | undefined =
   process.env.NODE_ENV === "production"
     ? undefined
     : await import("vite").then((vite) =>
@@ -14,8 +16,10 @@ const viteDevServer =
 
 const remixHandler = createRequestHandler({
   build: viteDevServer
-    ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build")
-    : await import("./build/server/index.js"),
+    ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build") as Promise<ServerBuild>
+    : (await import("./build/server/index.js").catch(() => {
+        throw new Error("Production build not found. Run 'npm run build:all' first.");
+      })) as ServerBuild,
 });
 
 const app = express();
@@ -45,7 +49,7 @@ app.use(morgan("tiny"));
 // handle SSR requests
 app.all("*", remixHandler);
 
-const port = process.env.PORT || 3000;
+const port: string | number = process.env.PORT || 3000;
 app.listen(port, () =>
   console.log(`Express server listening at http://localhost:${port}`)
 );

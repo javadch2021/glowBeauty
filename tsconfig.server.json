@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    // Base configuration
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "typeRoots": ["./types", "./node_modules/@types"],
+
+    // Override the main tsconfig to enable compilation
+    "noEmit": false,
+
+    // Output configuration
+    "outDir": "./build",
+    "rootDir": ".",
+
+    
+    // ESM configuration for Node.js
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "target": "ES2022",
+
+    // Ensure proper ESM output
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+
+    // Source maps for debugging
+    "sourceMap": true,
+    "declaration": false,
+
+    // Type checking
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+
+    // Path mapping
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./app/*"]
+    }
+  },
+  "include": [
+    "server.ts",
+    "types/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "app/**/*",
+    "public/**/*",
+    "vite.config.ts",
+    "tailwind.config.ts",
+    "postcss.config.js"
+  ]
+}
