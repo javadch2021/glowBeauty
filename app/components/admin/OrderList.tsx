@@ -1,10 +1,14 @@
 import React, { useState } from "react";
-import { Order } from "~/components/forms/Landing";
+import { Order } from "~/lib/models";
 
 interface OrderListProps {
   orders: Order[];
   onViewDetails: (order: Order) => void;
-  onUpdateStatus: (orderId: number, status: Order["status"]) => void;
+  onUpdateStatus: (
+    orderId: number,
+    status: Order["status"],
+    trackingNumber?: string
+  ) => void;
 }
 
 export const OrderList: React.FC<OrderListProps> = ({
@@ -50,8 +54,10 @@ export const OrderList: React.FC<OrderListProps> = ({
         bValue = bValue.toLowerCase();
       }
 
-      if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
-      if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      if (aValue != null && bValue != null) {
+        if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+      }
       return 0;
     });
 

@@ -3,9 +3,9 @@ import {
   CategoryContext,
   SearchContext,
   CartContext,
-  Product,
   ServerProductsContext,
 } from "../../forms/Landing";
+import { Product } from "~/lib/models";
 
 export const ProductGrid: React.FC = () => {
   const { activeCategory } = useContext(CategoryContext);

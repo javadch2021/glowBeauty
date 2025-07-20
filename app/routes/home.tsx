@@ -1,11 +1,16 @@
 import { useLoaderData } from "@remix-run/react";
 import { Landing } from "../components/forms/Landing"; // Import the Landing component
-import { productStore } from "~/lib/productStore";
+import { productService } from "~/lib/services.server";
 
 export const loader = async () => {
-  const products = productStore.getAll();
-  console.log("Home loader - Loading products:", products.length);
-  return { products };
+  try {
+    const products = await productService.getAll();
+    console.log("Home loader - Loading products:", products.length);
+    return { products };
+  } catch (error) {
+    console.error("Error loading products for home:", error);
+    return { products: [], error: "Failed to load products" };
+  }
 };
 
 export default function Home() {

@@ -21,4 +21,19 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  ssr: {
+    external: ["mongodb"],
+  },
+  optimizeDeps: {
+    exclude: ["mongodb"],
+  },
+  define: {
+    global: "globalThis",
+  },
+  build: {
+    sourcemap: process.env.NODE_ENV === "development",
+    rollupOptions: {
+      external: ["mongodb"],
+    },
+  },
 });

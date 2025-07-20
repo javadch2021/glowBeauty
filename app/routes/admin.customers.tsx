@@ -1,10 +1,11 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { useState } from "react";
+import { useLoaderData } from "@remix-run/react";
 import { AdminLayout } from "~/components/admin/AdminLayout";
 import { CustomerList } from "~/components/admin/CustomerList";
 import { CustomerDetails } from "~/components/admin/CustomerDetails";
-import { Customer } from "~/components/forms/Landing";
-import { mockCustomers } from "~/services/mockData";
+import { Customer } from "~/lib/models";
+import { customerService } from "~/lib/services.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -13,9 +14,23 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const loader = async () => {
+  try {
+    const customers = await customerService.getAll();
+    console.log(
+      "Admin customers loader - Loading customers:",
+      customers.length
+    );
+    return { customers };
+  } catch (error) {
+    console.error("Error loading customers:", error);
+    return { customers: [], error: "Failed to load customers" };
+  }
+};
+
 export default function AdminCustomers() {
-  // Initialize customers with mock data - in a real app, this would come from a loader
-  const [customers] = useState<Customer[]>(mockCustomers);
+  // Use loader data for customers
+  const { customers } = useLoaderData<typeof loader>();
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null

@@ -12,11 +12,11 @@
     "outDir": "./build",
     "rootDir": ".",
 
-    
     // ESM configuration for Node.js
     "module": "ESNext",
     "moduleResolution": "Node",
     "target": "ES2022",
+    "allowImportingTsExtensions": false,
 
     // Ensure proper ESM output
     "allowSyntheticDefaultImports": true,
@@ -42,12 +42,20 @@
   },
   "include": [
     "server.ts",
-    "types/**/*"
+    "types/**/*",
+    "app/lib/*.server.ts",
+    "app/lib/services.server/**/*",
+    "app/lib/models.ts",
+    "app/lib/utils/analytics.ts"
   ],
   "exclude": [
     "node_modules",
     "build",
     "app/**/*",
+    "!app/lib/*.server.ts",
+    "!app/lib/services.server/**/*",
+    "!app/lib/models.ts",
+    "!app/lib/utils/analytics.ts",
     "public/**/*",
     "vite.config.ts",
     "tailwind.config.ts",

@@ -1,0 +1,24 @@
+<type>(<scope>): <short summary>
+
+# Summary (max 72 characters) — use imperative mood:
+# ✅ "Add token refresh support"
+# ❌ "Added token refresh support"
+
+<Why this change is necessary?>
+- Briefly explain the motivation
+- What was broken, missing, or needs improvement?
+- Mention relevant modules or behavior
+
+<What was done?>
+- List key changes in bullet form (code, tests, refactors)
+- Include anything important reviewers should know
+
+<Optional extras>
+- Edge cases, tradeoffs, tech debt introduced
+- Links to design docs or specs (if internal)
+
+<Footer>
+BREAKING CHANGE: describe what’s breaking and how to adapt
+Closes: #123
+Co-authored-by: name <email@example.com>
+# Refined by: Meepo

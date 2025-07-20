@@ -1,6 +1,6 @@
 import React from "react";
 import { SimpleBarChart, SimpleLineChart, SimplePieChart } from "./SimpleChart";
-import { AnalyticsData } from "~/services/mockData";
+import { AnalyticsData } from "~/lib/models";
 
 interface AnalyticsDashboardProps {
   analyticsData: AnalyticsData;

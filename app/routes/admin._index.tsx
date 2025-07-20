@@ -1,12 +1,16 @@
 import type { MetaFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import { AdminLayout } from "~/components/admin/AdminLayout";
-import { useProducts } from "~/contexts/ProductsContext";
 import {
-  mockCustomers,
-  mockRecentActivity,
+  productService,
+  customerService,
+  activityService,
+} from "~/lib/services.server";
+import {
   calculateProductStats,
   calculateCustomerStats,
-} from "~/services/mockData";
+} from "~/lib/utils/analytics";
 
 export const meta: MetaFunction = () => {
   return [
@@ -18,13 +22,45 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export default function AdminDashboard() {
-  // Use products context for real-time data
-  const { products } = useProducts();
+export const loader = async () => {
+  try {
+    const [products, customers, recentActivity] = await Promise.all([
+      productService.getAll(),
+      customerService.getAll(),
+      activityService.getRecent(4),
+    ]);
 
-  // Calculate statistics from current data
-  const productStats = calculateProductStats(products);
-  const customerStats = calculateCustomerStats(mockCustomers);
+    return json({
+      products,
+      customers,
+      recentActivity,
+      productStats: calculateProductStats(products),
+      customerStats: calculateCustomerStats(customers),
+    });
+  } catch (error) {
+    console.error("Error loading dashboard data:", error);
+    return json(
+      {
+        products: [],
+        customers: [],
+        recentActivity: [],
+        productStats: { totalProducts: 0, averagePrice: 0, categories: 0 },
+        customerStats: {
+          totalCustomers: 0,
+          averageOrderValue: 0,
+          totalRevenue: 0,
+        },
+        error: "Failed to load dashboard data",
+      },
+      { status: 500 }
+    );
+  }
+};
+
+export default function AdminDashboard() {
+  // Use loader data
+  const { recentActivity, productStats, customerStats } =
+    useLoaderData<typeof loader>();
 
   const stats = [
     {
@@ -70,8 +106,8 @@ export default function AdminDashboard() {
       ),
     },
     {
-      name: "Total Orders",
-      value: customerStats.totalOrders.toString(),
+      name: "Total Customers",
+      value: customerStats.totalCustomers.toString(),
       change: "+23%",
       changeType: "increase" as const,
       icon: (
@@ -112,8 +148,6 @@ export default function AdminDashboard() {
       ),
     },
   ];
-
-  const recentActivity = mockRecentActivity.slice(0, 4);
 
   return (
     <AdminLayout currentPage="dashboard">
@@ -198,8 +232,8 @@ export default function AdminDashboard() {
           <div className="px-6 py-4">
             <div className="flow-root">
               <ul className="-mb-8">
-                {recentActivity.map((activity, activityIdx) => (
-                  <li key={activity.id}>
+                {recentActivity.filter(Boolean).map((activity, activityIdx) => (
+                  <li key={activity?.id}>
                     <div className="relative pb-8">
                       {activityIdx !== recentActivity.length - 1 ? (
                         <span
@@ -211,14 +245,14 @@ export default function AdminDashboard() {
                         <div>
                           <span
                             className={`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white ${
-                              activity.type === "order"
+                              activity?.type === "order"
                                 ? "bg-green-500"
-                                : activity.type === "customer"
+                                : activity?.type === "customer"
                                 ? "bg-blue-500"
                                 : "bg-yellow-500"
                             }`}
                           >
-                            {activity.type === "order" && (
+                            {activity?.type === "order" && (
                               <svg
                                 className="w-5 h-5 text-white"
                                 fill="none"
@@ -233,7 +267,7 @@ export default function AdminDashboard() {
                                 />
                               </svg>
                             )}
-                            {activity.type === "customer" && (
+                            {activity?.type === "customer" && (
                               <svg
                                 className="w-5 h-5 text-white"
                                 fill="none"
@@ -248,7 +282,7 @@ export default function AdminDashboard() {
                                 />
                               </svg>
                             )}
-                            {activity.type === "product" && (
+                            {activity?.type === "product" && (
                               <svg
                                 className="w-5 h-5 text-white"
                                 fill="none"
@@ -268,11 +302,11 @@ export default function AdminDashboard() {
                         <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                           <div>
                             <p className="text-sm text-gray-500">
-                              {activity.message}
+                              {activity?.message}
                             </p>
                           </div>
                           <div className="text-right text-sm whitespace-nowrap text-gray-500">
-                            <time>{activity.time}</time>
+                            <time>{activity?.time}</time>
                           </div>
                         </div>
                       </div>

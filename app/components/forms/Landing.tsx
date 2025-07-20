@@ -10,16 +10,7 @@ import { CartDrawer } from "../partials/Landing/CartDrawer";
 import { LandingHeader } from "../partials/Landing/LandingHeader";
 import { HeroSection } from "../partials/Landing/HeroSection";
 import { ProductGrid } from "../partials/Landing/ProductGrid";
-
-// Define types for product data
-export interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-}
+import { Product } from "~/lib/models";
 
 export interface CartItem extends Product {
   quantity: number;

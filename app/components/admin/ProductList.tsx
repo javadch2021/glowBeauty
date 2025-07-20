@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Product } from "../forms/Landing";
+import { Product } from "~/lib/models";
 
 interface ProductListProps {
   products: Product[];

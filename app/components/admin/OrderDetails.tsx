@@ -1,11 +1,15 @@
 import React from "react";
-import { Order } from "~/components/forms/Landing";
+import { Order } from "~/lib/models";
 
 interface OrderDetailsProps {
   order: Order | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdateStatus: (orderId: number, status: Order["status"]) => void;
+  onUpdateStatus: (
+    orderId: number,
+    status: Order["status"],
+    trackingNumber?: string
+  ) => void;
 }
 
 export const OrderDetails: React.FC<OrderDetailsProps> = ({

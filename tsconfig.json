@@ -8,8 +8,7 @@
     "**/.client/**/*.tsx"
   ],
   "compilerOptions": {
-    "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["@remix-run/node", "vite/client"],
+    "lib": ["DOM", "DOM.Iterable", "ES2022", "ES2023"],
     "typeRoots": ["./types", "./node_modules/@types"],
     "isolatedModules": true,
     "esModuleInterop": true,
@@ -20,7 +19,6 @@
     "target": "ES2022",
     "strict": true,
     "allowJs": true,
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
@@ -28,6 +26,7 @@
     },
 
     // Vite takes care of building everything, not tsc.
-    "noEmit": true
+    "noEmit": true,
+    "skipLibCheck": true
   }
 }

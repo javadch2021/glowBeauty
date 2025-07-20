@@ -1,11 +1,15 @@
-import type { MetaFunction, ActionFunctionArgs } from "@remix-run/node";
+import type {
+  MetaFunction,
+  ActionFunctionArgs,
+} from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { useState } from "react";
 import { useLoaderData, useRevalidator } from "@remix-run/react";
 import { AdminLayout } from "~/components/admin/AdminLayout";
 import { ProductList } from "~/components/admin/ProductList";
 import { ProductForm } from "~/components/admin/ProductForm";
-import { Product } from "~/components/forms/Landing";
-import { productStore } from "~/lib/productStore";
+import { Product } from "~/lib/models";
+import { productService, activityService } from "~/lib/services.server";
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,45 +19,70 @@ export const meta: MetaFunction = () => {
 };
 
 export const loader = async () => {
-  const products = productStore.getAll();
-  console.log("Admin loader - Loading products:", products.length);
-  return { products };
+  try {
+    const products = await productService.getAll();
+    console.log("Admin loader - Loading products:", products.length);
+    return json({ products });
+  } catch (error) {
+    console.error("Error loading products:", error);
+    return json(
+      { products: [], error: "Failed to load products" },
+      { status: 500 }
+    );
+  }
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const formData = await request.formData();
-  const actionType = formData.get("actionType") as string;
+  try {
+    const formData = await request.formData();
+    const actionType = formData.get("actionType") as string;
 
-  console.log("Admin action - Action type:", actionType);
+    console.log("Admin action - Action type:", actionType);
 
-  if (actionType === "add") {
-    const productData = {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      price: parseFloat(formData.get("price") as string),
-      image: formData.get("image") as string,
-      category: formData.get("category") as string,
-    };
-    const newProduct = productStore.add(productData);
-    console.log("Admin action - Added product:", newProduct);
-  } else if (actionType === "update") {
-    const productData = {
-      id: parseInt(formData.get("id") as string),
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      price: parseFloat(formData.get("price") as string),
-      image: formData.get("image") as string,
-      category: formData.get("category") as string,
-    };
-    productStore.update(productData);
-    console.log("Admin action - Updated product:", productData);
-  } else if (actionType === "delete") {
-    const productId = parseInt(formData.get("id") as string);
-    productStore.delete(productId);
-    console.log("Admin action - Deleted product ID:", productId);
+    if (actionType === "add") {
+      const productData = {
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        price: parseFloat(formData.get("price") as string),
+        image: formData.get("image") as string,
+        category: formData.get("category") as string,
+      };
+      const newProduct = await productService.create(productData);
+      await activityService.logProductActivity(newProduct.name, "added");
+      console.log("Admin action - Added product:", newProduct);
+      return json({ success: true, product: newProduct });
+    } else if (actionType === "update") {
+      const productData = {
+        id: parseInt(formData.get("id") as string),
+        name: formData.get("name") as string,
+        description: formData.get("description") as string,
+        price: parseFloat(formData.get("price") as string),
+        image: formData.get("image") as string,
+        category: formData.get("category") as string,
+      };
+      const updatedProduct = await productService.update(productData);
+      await activityService.logProductActivity(updatedProduct.name, "updated");
+      console.log("Admin action - Updated product:", productData);
+      return json({ success: true, product: updatedProduct });
+    } else if (actionType === "delete") {
+      const productId = parseInt(formData.get("id") as string);
+      const product = await productService.getById(productId);
+      const deleted = await productService.delete(productId);
+      if (deleted && product) {
+        await activityService.logProductActivity(product.name, "deleted");
+      }
+      console.log("Admin action - Deleted product ID:", productId);
+      return json({ success: deleted });
+    }
+
+    return json(
+      { success: false, error: "Invalid action type" },
+      { status: 400 }
+    );
+  } catch (error) {
+    console.error("Error in admin action:", error);
+    return json({ success: false, error: "Operation failed" }, { status: 500 });
   }
-
-  return { success: true };
 };
 
 export default function AdminProducts() {

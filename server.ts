@@ -4,6 +4,7 @@ import express from "express";
 import morgan from "morgan";
 import type { ViteDevServer } from "vite";
 import type { ServerBuild } from "@remix-run/node";
+import { initializeDatabase } from "./app/lib/mongodb.server.js";
 
 const viteDevServer: ViteDevServer | undefined =
   process.env.NODE_ENV === "production"
@@ -16,10 +17,15 @@ const viteDevServer: ViteDevServer | undefined =
 
 const remixHandler = createRequestHandler({
   build: viteDevServer
-    ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build") as Promise<ServerBuild>
-    : (await import("./build/server/index.js").catch(() => {
-        throw new Error("Production build not found. Run 'npm run build:all' first.");
-      })) as ServerBuild,
+    ? () =>
+        viteDevServer.ssrLoadModule(
+          "virtual:remix/server-build"
+        ) as Promise<ServerBuild>
+    : ((await import("./build/server/index.js").catch(() => {
+        throw new Error(
+          "Production build not found. Run 'npm run build:all' first."
+        );
+      })) as ServerBuild),
 });
 
 const app = express();
@@ -50,6 +56,20 @@ app.use(morgan("tiny"));
 app.all("*", remixHandler);
 
 const port: string | number = process.env.PORT || 3000;
-app.listen(port, () =>
-  console.log(`Express server listening at http://localhost:${port}`)
-);
+
+// Initialize database connection before starting server
+async function startServer() {
+  try {
+    await initializeDatabase();
+    console.log("✅ Database initialized successfully");
+
+    app.listen(port, () =>
+      console.log(`Express server listening at http://localhost:${port}`)
+    );
+  } catch (error) {
+    console.error("❌ Failed to initialize database:", error);
+    process.exit(1);
+  }
+}
+
+startServer();

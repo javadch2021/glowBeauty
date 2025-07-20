@@ -1,8 +1,9 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction, LoaderFunctionArgs } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import { AdminLayout } from "~/components/admin/AdminLayout";
 import { AnalyticsDashboard } from "~/components/admin/AnalyticsDashboard";
-import { useProducts } from "~/contexts/ProductsContext";
-import { mockOrders, generateAnalyticsData } from "~/services/mockData";
+import { productService, orderService } from "~/lib/services.server";
+import { generateAnalyticsData } from "~/lib/utils/analytics";
 
 export const meta: MetaFunction = () => {
   return [
@@ -14,12 +15,33 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export default function AdminAnalytics() {
-  // Use products context for real-time data
-  const { products } = useProducts();
+export const loader = async () => {
+  try {
+    const [products, orders] = await Promise.all([
+      productService.getAll(),
+      orderService.getAll(),
+    ]);
 
-  // Generate analytics data from current data - in a real app, this would come from a loader
-  const analyticsData = generateAnalyticsData(mockOrders, products);
+    const analyticsData = generateAnalyticsData(orders, products);
+    console.log("Admin analytics loader - Generated analytics data");
+    return { analyticsData };
+  } catch (error) {
+    console.error("Error loading analytics data:", error);
+    return {
+      analyticsData: {
+        salesByMonth: [],
+        topProducts: [],
+        ordersByStatus: [],
+        revenueGrowth: [],
+      },
+      error: "Failed to load analytics data",
+    };
+  }
+};
+
+export default function AdminAnalytics() {
+  // Use loader data for analytics
+  const { analyticsData } = useLoaderData<typeof loader>();
 
   return (
     <AdminLayout currentPage="analytics">

@@ -1,5 +1,5 @@
 import React from "react";
-import { Customer } from "../forms/Landing";
+import { Customer } from "~/lib/models";
 
 interface CustomerDetailsProps {
   customer: Customer | null;
