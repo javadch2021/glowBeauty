@@ -1,0 +1,37 @@
+LICENSE AGREEMENT
+
+Copyright (c) 2025 Mohammad Javad Choopani. All rights reserved.
+
+This software is the proprietary work of Mohammad Javad Choopani and is protected under international copyright law. It is not open source and is not available for free use or distribution.
+
+Permission to use, copy, modify, host, or distribute this software in any form is strictly prohibited without the prior written consent of the author.
+
+You MAY NOT:
+- Use or run this software in any personal, commercial, educational, or governmental setting without a valid license.
+- Copy, reproduce, or reverse engineer any part of this software.
+- Sell, rent, sublicense, or distribute this software or any derivative works based on it.
+- Include this software in any public or private repositories or deployments.
+
+You MAY:
+- Use this software if you have obtained a valid license directly from the author.
+- Contact the author to inquire about licensing, custom integrations, or commercial terms.
+
+License keys are issued on a per-project or per-domain basis and may be limited in scope or duration depending on the purchased license.
+
+Unauthorized use of this software, or use without a valid license, constitutes a violation of intellectual property law and may result in legal action, including but not limited to takedown requests, damages, and prosecution.
+
+TO OBTAIN A LICENSE:
+Email: javadchoopani84@outlook.com
+Include your full name, intended use, and any relevant business or project details.
+
+USE OF THIS SOFTWARE WITHOUT A VALID LICENSE IS STRICTLY PROHIBITED.
+
+-----
+
+DISCLAIMER
+
+This software is provided "as is" without warranty of any kind, express or implied. In no event shall the author be liable for any claim, damages, or other liability arising from the use of this software.
+
+-----
+Mohammad Javad Choopani
+2025
