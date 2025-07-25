@@ -106,8 +106,8 @@ export default function AdminDashboard() {
       ),
     },
     {
-      name: "Total Customers",
-      value: customerStats.totalCustomers.toString(),
+      name: "Total Orders",
+      value: "24", // You can replace this with actual order count from your data
       change: "+23%",
       changeType: "increase" as const,
       icon: (

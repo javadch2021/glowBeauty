@@ -2,14 +2,15 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { createContext, useState, useEffect } from "react";
+import { useNavigate } from "@remix-run/react";
 import LandingFooter from "../partials/Landing/LandingFooter";
-import { LoginTab } from "../partials/Landing/LoginTab";
-import { RegisterTab } from "../partials/Landing/RegisterTab";
-import { LoginRegisterLabels } from "../partials/Landing/LoginRegisterForm";
-import { CartDrawer } from "../partials/Landing/CartDrawer";
+import { LoginTab } from "../partials/Auth/LoginTab";
+import { RegisterTab } from "../partials/Auth/RegisterTab";
+import { LoginRegisterLabels } from "../partials/Auth/LoginRegisterForm";
+import { CartDrawer } from "../partials/Product/CartDrawer";
 import { LandingHeader } from "../partials/Landing/LandingHeader";
 import { HeroSection } from "../partials/Landing/HeroSection";
-import { ProductGrid } from "../partials/Landing/ProductGrid";
+import { ProductGrid } from "../partials/Product/ProductGrid";
 import { AboutUs } from "../partials/Landing/AboutUs";
 import { Benefits } from "../partials/Landing/Benefits";
 import { CategorySliders } from "../partials/Landing/CategorySliders";
@@ -88,6 +89,12 @@ export const ServerProductsContext = createContext<{
   products: Product[];
 }>({ products: [] });
 
+export const ProductNavigationContext = createContext<{
+  onProductClick: (product: Product) => void;
+}>({
+  onProductClick: () => {},
+});
+
 interface LandingProps {
   products?: Product[];
 }
@@ -95,6 +102,7 @@ interface LandingProps {
 export const Landing: React.FC<LandingProps> = ({
   products: serverProducts,
 }) => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -104,8 +112,11 @@ export const Landing: React.FC<LandingProps> = ({
   const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
   const [isHeaderSticky, setIsHeaderSticky] = useState<boolean>(false);
 
-  // Scroll detection for sticky header visual feedback
+  // Scroll detection for sticky header visual feedback (client-side only)
   useEffect(() => {
+    // Only run on client side to prevent hydration issues
+    if (typeof window === "undefined") return;
+
     const handleScroll = () => {
       const scrollY = window.scrollY;
 
@@ -161,6 +172,13 @@ export const Landing: React.FC<LandingProps> = ({
     0
   );
 
+  // Navigate to product page
+  const handleProductClick = (product: Product) => {
+    // Create URL with category and product ID
+    const productUrl = `/${product.category}?id=${product.id}`;
+    navigate(productUrl);
+  };
+
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <AuthContext.Provider value={{ authModalOpen, setAuthModalOpen }}>
@@ -191,10 +209,7 @@ export const Landing: React.FC<LandingProps> = ({
               >
                 <CategorySliders
                   products={serverProducts || []}
-                  onProductClick={(product) => {
-                    console.log("Product clicked from slider:", product);
-                    // You can add to cart or show product details here
-                  }}
+                  onProductClick={handleProductClick}
                 />
               </ServerProductsContext.Provider>
 
@@ -202,9 +217,13 @@ export const Landing: React.FC<LandingProps> = ({
               <ServerProductsContext.Provider
                 value={{ products: serverProducts || [] }}
               >
-                <CartContext.Provider value={{ cart, setCart }}>
-                  <ProductGrid />
-                </CartContext.Provider>
+                <ProductNavigationContext.Provider
+                  value={{ onProductClick: handleProductClick }}
+                >
+                  <CartContext.Provider value={{ cart, setCart }}>
+                    <ProductGrid />
+                  </CartContext.Provider>
+                </ProductNavigationContext.Provider>
               </ServerProductsContext.Provider>
             </LoginContext.Provider>
           </SearchContext.Provider>

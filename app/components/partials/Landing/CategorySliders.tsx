@@ -1,14 +1,6 @@
 import React from "react";
 import { Slider } from "./Slider";
-
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  description?: string;
-}
+import { Product } from "~/lib/models";
 
 interface CategorySlidersProps {
   products: Product[];
@@ -93,7 +85,7 @@ export const CategorySliders: React.FC<CategorySlidersProps> = ({
             itemsPerView={{
               mobile: 1,
               tablet: 2,
-              desktop: 3,
+              desktop: 4,
             }}
             onItemClick={handleProductClick}
           />
@@ -124,8 +116,8 @@ export const CategorySliders: React.FC<CategorySlidersProps> = ({
                 No Products Available
               </h3>
               <p className="text-gray-600">
-                We're working on adding amazing products for you. Check back
-                soon!
+                We&apos;re working on adding amazing products for you. Check
+                back soon!
               </p>
             </div>
           </div>

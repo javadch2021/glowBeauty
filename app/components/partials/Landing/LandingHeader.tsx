@@ -77,7 +77,7 @@ export const LandingHeader = ({
                 console.log("Search input changed:", e.target.value);
                 setSearchQuery(e.target.value);
               }}
-              className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 w-64"
+              className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 w-64 text-gray-900 bg-white placeholder-gray-500"
             />
             <button
               aria-label="View Cart"
@@ -158,7 +158,7 @@ export const LandingHeader = ({
                 console.log("Search input changed:", e.target.value);
                 setSearchQuery(e.target.value);
               }}
-              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm"
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 text-sm text-gray-900 bg-white placeholder-gray-500"
             />
           </div>
 

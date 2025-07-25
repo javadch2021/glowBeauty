@@ -36,6 +36,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Global image error handler to catch placeholder requests
+              document.addEventListener('error', function(e) {
+                if (e.target && e.target.tagName === 'IMG') {
+                  const img = e.target;
+                  if (img.src.includes('placeholder.com')) {
+                    console.warn('Blocked placeholder.com request:', img.src);
+                    img.src = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop';
+                  }
+                }
+              }, true);
+            `,
+          }}
+        />
       </body>
     </html>
   );

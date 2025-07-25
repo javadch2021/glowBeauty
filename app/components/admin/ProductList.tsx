@@ -109,6 +109,11 @@ export const ProductList: React.FC<ProductListProps> = ({
                         className="h-12 w-12 rounded-lg object-cover"
                         src={product.image}
                         alt={product.name}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src =
+                            "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop";
+                        }}
                       />
                     </div>
                     <div className="ml-4">

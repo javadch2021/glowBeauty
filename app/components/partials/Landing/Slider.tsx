@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { Product } from "~/lib/models";
 
-interface SliderItem {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  category: string;
-  description?: string;
-}
+type SliderItem = Product;
 
 interface SliderProps {
   title: string;
@@ -36,9 +30,8 @@ export const Slider: React.FC<SliderProps> = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 1024
-  );
+  const [windowWidth, setWindowWidth] = useState(1024); // Default to desktop size
+  const [isClient, setIsClient] = useState(false);
 
   // Calculate total slides based on items per view for different screen sizes
   const getItemsPerView = () => {
@@ -50,34 +43,43 @@ export const Slider: React.FC<SliderProps> = ({
   const currentItemsPerView = getItemsPerView();
   const totalSlides = Math.ceil(items.length / currentItemsPerView);
 
-  // Handle window resize
+  // Prevent hydration mismatch by using consistent values during SSR
+  const safeItemsPerView = isClient
+    ? currentItemsPerView
+    : itemsPerView.desktop;
+  const safeTotalSlides = Math.ceil(items.length / safeItemsPerView);
+
+  // Handle client-side hydration and window resize
   useEffect(() => {
+    // Set client flag and initial window width
+    setIsClient(true);
+    setWindowWidth(window.innerWidth);
+
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
     };
 
-    if (typeof window !== "undefined") {
-      window.addEventListener("resize", handleResize);
-      return () => window.removeEventListener("resize", handleResize);
-    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Auto-play functionality
+  // Auto-play functionality (only on client side)
   useEffect(() => {
-    if (autoPlay && !isHovered && items.length > itemsPerView.desktop) {
+    if (isClient && autoPlay && !isHovered && items.length > safeItemsPerView) {
       const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % totalSlides);
+        setCurrentIndex((prev) => (prev + 1) % safeTotalSlides);
       }, autoPlayInterval);
 
       return () => clearInterval(interval);
     }
   }, [
+    isClient,
     autoPlay,
     autoPlayInterval,
     isHovered,
-    totalSlides,
+    safeTotalSlides,
     items.length,
-    itemsPerView.desktop,
+    safeItemsPerView,
   ]);
 
   const goToSlide = (index: number) => {
@@ -85,11 +87,11 @@ export const Slider: React.FC<SliderProps> = ({
   };
 
   const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev - 1 + totalSlides) % totalSlides);
+    setCurrentIndex((prev) => (prev - 1 + safeTotalSlides) % safeTotalSlides);
   };
 
   const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % totalSlides);
+    setCurrentIndex((prev) => (prev + 1) % safeTotalSlides);
   };
 
   const handleItemClick = (item: SliderItem) => {
@@ -121,7 +123,7 @@ export const Slider: React.FC<SliderProps> = ({
           </h2>
 
           {/* Navigation Arrows */}
-          {showArrows && items.length > itemsPerView.desktop && (
+          {showArrows && items.length > safeItemsPerView && (
             <div className="flex space-x-2">
               <button
                 onClick={goToPrevious}
@@ -178,7 +180,7 @@ export const Slider: React.FC<SliderProps> = ({
                 transform: `translateX(-${currentIndex * 100}%)`,
               }}
             >
-              {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+              {Array.from({ length: safeTotalSlides }).map((_, slideIndex) => (
                 <div
                   key={slideIndex}
                   className="w-full flex-shrink-0 px-1 md:px-4"
@@ -186,8 +188,8 @@ export const Slider: React.FC<SliderProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 items-stretch p-4">
                     {items
                       .slice(
-                        slideIndex * currentItemsPerView,
-                        (slideIndex + 1) * currentItemsPerView
+                        slideIndex * safeItemsPerView,
+                        (slideIndex + 1) * safeItemsPerView
                       )
                       .map((item) => (
                         <div
@@ -202,6 +204,11 @@ export const Slider: React.FC<SliderProps> = ({
                                 src={item.image}
                                 alt={item.name}
                                 className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-200"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src =
+                                    "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop";
+                                }}
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150"></div>
                             </div>
@@ -237,9 +244,9 @@ export const Slider: React.FC<SliderProps> = ({
         </div>
 
         {/* Dots Indicator */}
-        {showDots && totalSlides > 1 && (
+        {showDots && safeTotalSlides > 1 && (
           <div className="flex justify-center space-x-2 mt-8">
-            {Array.from({ length: totalSlides }).map((_, index) => (
+            {Array.from({ length: safeTotalSlides }).map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
