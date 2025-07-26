@@ -7,6 +7,8 @@ import {
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
 import { ProductsProvider } from "~/contexts/ProductsContext";
+import { NotificationProvider } from "~/contexts/NotificationContext";
+import NotificationContainer from "~/components/partials/Notification/NotificationContainer";
 
 import "./tailwind.css";
 
@@ -32,10 +34,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="overflow-x-hidden">
         {children}
         <ScrollRestoration />
         <Scripts />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Global image error handler to catch placeholder requests
+              document.addEventListener('error', function(e) {
+                if (e.target && e.target.tagName === 'IMG') {
+                  const img = e.target;
+                  if (img.src.includes('placeholder.com')) {
+                    console.warn('Blocked placeholder.com request:', img.src);
+                    img.src = 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop';
+                  }
+                }
+              }, true);
+            `,
+          }}
+        />
       </body>
     </html>
   );
@@ -43,8 +61,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ProductsProvider>
-      <Outlet />
-    </ProductsProvider>
+    <NotificationProvider>
+      <ProductsProvider>
+        <Outlet />
+        <NotificationContainer />
+      </ProductsProvider>
+    </NotificationProvider>
   );
 }

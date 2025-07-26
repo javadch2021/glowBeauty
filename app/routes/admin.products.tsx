@@ -1,7 +1,4 @@
-import type {
-  MetaFunction,
-  ActionFunctionArgs,
-} from "@remix-run/node";
+import type { MetaFunction, ActionFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useState } from "react";
 import { useLoaderData, useRevalidator } from "@remix-run/react";
@@ -10,6 +7,7 @@ import { ProductList } from "~/components/admin/ProductList";
 import { ProductForm } from "~/components/admin/ProductForm";
 import { Product } from "~/lib/models";
 import { productService, activityService } from "~/lib/services.server";
+import { useNotification } from "~/contexts/NotificationContext";
 
 export const meta: MetaFunction = () => {
   return [
@@ -92,6 +90,7 @@ export default function AdminProducts() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const { showSuccess, showError } = useNotification();
 
   console.log("AdminProducts component - Received products:", products.length);
 
@@ -107,17 +106,25 @@ export default function AdminProducts() {
 
   const handleDeleteProduct = async (productId: number) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
-      console.log("Admin - Deleting product ID:", productId);
-      const formData = new FormData();
-      formData.append("actionType", "delete");
-      formData.append("id", productId.toString());
+      try {
+        const formData = new FormData();
+        formData.append("actionType", "delete");
+        formData.append("id", productId.toString());
 
-      await fetch("/admin/products", {
-        method: "POST",
-        body: formData,
-      });
+        const response = await fetch("/admin/products", {
+          method: "POST",
+          body: formData,
+        });
 
-      revalidator.revalidate();
+        if (response.ok) {
+          showSuccess("Product deleted successfully!");
+          revalidator.revalidate();
+        } else {
+          showError("Failed to delete product. Please try again.");
+        }
+      } catch (error) {
+        showError("Failed to delete product. Please try again.");
+      }
     }
   };
 
@@ -144,14 +151,28 @@ export default function AdminProducts() {
     formData.append("image", productData.image);
     formData.append("category", productData.category);
 
-    await fetch("/admin/products", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch("/admin/products", {
+        method: "POST",
+        body: formData,
+      });
 
-    setIsFormOpen(false);
-    setEditingProduct(null);
-    revalidator.revalidate();
+      if (response.ok) {
+        const isUpdate = "id" in productData;
+        showSuccess(
+          isUpdate
+            ? `${productData.name} updated successfully!`
+            : `${productData.name} added successfully!`
+        );
+        setIsFormOpen(false);
+        setEditingProduct(null);
+        revalidator.revalidate();
+      } else {
+        showError("Failed to save product. Please try again.");
+      }
+    } catch (error) {
+      showError("Failed to save product. Please try again.");
+    }
   };
 
   const handleCancelForm = () => {

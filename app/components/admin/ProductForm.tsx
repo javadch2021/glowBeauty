@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Product } from "~/lib/models";
+import { useNotification } from "~/contexts/NotificationContext";
 
 interface ProductFormProps {
   product?: Product | null;
@@ -23,6 +24,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { showSuccess, showError, showWarning } = useNotification();
 
   useEffect(() => {
     if (product) {
@@ -64,6 +66,48 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
     if (!formData.image.trim()) {
       newErrors.image = "Image URL is required";
+    } else {
+      try {
+        const url = new URL(formData.image);
+
+        // Check if URL starts with http or https
+        if (!url.protocol.startsWith("http")) {
+          newErrors.image = "Image URL must start with http:// or https://";
+        }
+        // Check if URL has a valid image extension or is from a known image service
+        else {
+          const pathname = url.pathname.toLowerCase();
+          const validExtensions = [
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".gif",
+            ".webp",
+            ".svg",
+          ];
+          const imageServices = [
+            "unsplash.com",
+            "images.unsplash.com",
+            "pixabay.com",
+            "pexels.com",
+          ];
+
+          const hasValidExtension = validExtensions.some((ext) =>
+            pathname.endsWith(ext)
+          );
+          const isFromImageService = imageServices.some((service) =>
+            url.hostname.includes(service)
+          );
+
+          if (!hasValidExtension && !isFromImageService) {
+            newErrors.image =
+              "Please enter a valid image URL (must end with .jpg, .png, .gif, .webp, .svg or be from a known image service)";
+          }
+        }
+      } catch {
+        newErrors.image =
+          "Please enter a valid URL (e.g., https://example.com/image.jpg)";
+      }
     }
 
     if (!formData.category.trim()) {
@@ -78,6 +122,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     e.preventDefault();
 
     if (!validateForm()) {
+      showError("Please fix the form errors before submitting.");
       return;
     }
 
@@ -89,10 +134,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       category: formData.category.trim(),
     };
 
-    if (product) {
-      onSave({ ...productData, id: product.id });
-    } else {
-      onSave(productData);
+    try {
+      if (product) {
+        onSave({ ...productData, id: product.id });
+        showSuccess(`${productData.name} updated successfully!`);
+      } else {
+        onSave(productData);
+        showSuccess(`${productData.name} added successfully!`);
+      }
+    } catch (error) {
+      showError("Failed to save product. Please try again.");
     }
   };
 
@@ -121,7 +172,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-4 space-y-4">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="px-6 py-4 space-y-4"
+        >
           {/* Product Name */}
           <div>
             <label
@@ -213,8 +267,31 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500 sm:text-sm ${
                 errors.image ? "border-red-300" : "border-gray-300"
               }`}
-              placeholder="https://example.com/image.jpg"
+              placeholder="https://images.unsplash.com/photo-example/image.jpg"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              Enter a valid image URL ending with .jpg, .png, .gif, .webp, or
+              .svg
+            </p>
+            {/* Image Preview */}
+            {formData.image && !errors.image && (
+              <div className="mt-2">
+                <p className="text-xs text-gray-600 mb-1">Preview:</p>
+                <img
+                  src={formData.image}
+                  alt="Preview"
+                  className="w-20 h-20 object-cover rounded border"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
+                  onLoad={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "block";
+                  }}
+                />
+              </div>
+            )}
             {errors.image && (
               <p className="mt-1 text-sm text-red-600">{errors.image}</p>
             )}
@@ -261,6 +338,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleSubmit}
             className="px-4 py-2 text-sm font-medium text-white bg-pink-600 border border-transparent rounded-md hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
           >

@@ -12,6 +12,17 @@ interface OrderDetailsProps {
   ) => void;
 }
 
+// Configuration for print invoice
+// To change the website URL that appears on printed invoices,
+// simply update the 'companyWebsite' value below
+const PRINT_CONFIG = {
+  companyName: "Beauty Store",
+  companyAddress: "123 Beauty Lane, Cosmetic City, CC 12345",
+  companyPhone: "(555) 123-4567",
+  companyEmail: "orders@beautystore.com",
+  companyWebsite: "www.beautystore.com", // ← Change this URL as needed
+};
+
 export const OrderDetails: React.FC<OrderDetailsProps> = ({
   order,
   isOpen,
@@ -28,6 +39,335 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const handlePrint = () => {
+    // Show a brief tip for clean printing
+    console.log(
+      "💡 Print Tip: In the print dialog, click 'More settings' and uncheck 'Headers and footers' to remove the page URL from the bottom of the printed page."
+    );
+
+    // Create a hidden iframe for printing (no new tab)
+    const printFrame = document.createElement("iframe");
+    printFrame.style.position = "absolute";
+    printFrame.style.top = "-1000px";
+    printFrame.style.left = "-1000px";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "none";
+
+    document.body.appendChild(printFrame);
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Invoice #${order.id}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 0;
+            }
+
+            @media print {
+              @page { margin: 0; }
+              html, body { margin: 0; padding: 0; }
+            }
+
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              box-sizing: border-box;
+            }
+
+            body {
+              margin: 0;
+              padding: 15mm 10mm;
+              background: white;
+              color: black;
+              font-family: 'Arial', sans-serif;
+              font-size: 8pt;
+              line-height: 1.2;
+              min-height: 100vh;
+              box-sizing: border-box;
+            }
+
+            .print-container {
+              max-height: 275mm;
+              overflow: hidden;
+            }
+
+            .print-header {
+              border-bottom: 1px solid #374151;
+              padding-bottom: 6pt;
+              margin-bottom: 8pt;
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+            }
+
+            .company-info {
+              display: flex;
+              align-items: flex-start;
+              gap: 6pt;
+            }
+
+            .company-logo {
+              width: 25pt;
+              height: 25pt;
+              background-color: #fce7f3;
+              border-radius: 3pt;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              color: #ec4899;
+              font-size: 10pt;
+            }
+
+            .invoice-info {
+              text-align: right;
+              background-color: #f9fafb;
+              padding: 4pt;
+              border-radius: 3pt;
+              border: 1px solid #e5e7eb;
+              min-width: 100pt;
+            }
+
+            .print-section {
+              margin-bottom: 6pt;
+            }
+
+            .section-title {
+              font-size: 9pt;
+              font-weight: bold;
+              margin-bottom: 3pt;
+              color: black;
+            }
+
+            .info-box {
+              background-color: #f9fafb;
+              padding: 4pt;
+              border-radius: 3pt;
+              border: 1px solid #e5e7eb;
+            }
+
+            .grid-2 {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 8pt;
+            }
+
+            .print-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 4pt;
+              font-size: 7pt;
+            }
+
+            .print-table th,
+            .print-table td {
+              border: 1px solid #374151;
+              padding: 2pt 3pt;
+              text-align: left;
+              vertical-align: top;
+            }
+
+            .print-table th {
+              background-color: #f3f4f6;
+              font-weight: bold;
+              font-size: 7pt;
+            }
+
+            .print-total-row {
+              border-top: 2px solid #374151;
+              font-weight: bold;
+              background-color: #f9fafb;
+            }
+
+            .summary-table {
+              width: 120pt;
+              margin-left: auto;
+              font-size: 7pt;
+            }
+
+            .footer {
+              margin-top: 8pt;
+              padding-top: 4pt;
+              border-top: 1px solid #d1d5db;
+              text-align: center;
+              color: #6b7280;
+              font-size: 6pt;
+            }
+
+            h1 { font-size: 14pt; margin: 0 0 2pt 0; }
+            h2 { font-size: 12pt; margin: 0 0 2pt 0; }
+            h3 { font-size: 9pt; margin: 0 0 3pt 0; }
+            p { margin: 0 0 2pt 0; font-size: 7pt; }
+            .font-semibold { font-weight: 600; }
+            .text-right { text-align: right; }
+
+            /* Compact layout for single page */
+            .items-section {
+              max-height: 100pt;
+              overflow: hidden;
+            }
+
+            .compact-info {
+              font-size: 6pt;
+              line-height: 1.1;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-container">
+            <div class="print-header">
+              <div class="company-info">
+                <div class="company-logo">BS</div>
+                <div>
+                  <h1>${PRINT_CONFIG.companyName}</h1>
+                  <p class="compact-info">${PRINT_CONFIG.companyAddress}</p>
+                  <p class="compact-info">Phone: ${
+                    PRINT_CONFIG.companyPhone
+                  } | ${PRINT_CONFIG.companyEmail}</p>
+                </div>
+              </div>
+              <div class="invoice-info">
+                <h2>INVOICE</h2>
+                <p class="font-semibold">Order #${order.id}</p>
+                <p class="compact-info">${formatDate(order.orderDate)}</p>
+                <p class="compact-info">Status: ${
+                  order.status.charAt(0).toUpperCase() + order.status.slice(1)
+                }</p>
+              </div>
+            </div>
+
+            <div class="print-section">
+              <h3 class="section-title">Bill To:</h3>
+              <div class="info-box">
+                <p class="font-semibold">${order.customerName}</p>
+                <p class="compact-info">${order.customerEmail}</p>
+                <p class="compact-info">${order.shippingAddress}</p>
+              </div>
+            </div>
+
+            <div class="print-section">
+              <div class="grid-2">
+                <div>
+                  <h3 class="section-title">Order Info</h3>
+                  <p class="compact-info"><span class="font-semibold">Payment:</span> ${
+                    order.paymentMethod
+                  }</p>
+                  ${
+                    order.trackingNumber
+                      ? `<p class="compact-info"><span class="font-semibold">Tracking:</span> ${order.trackingNumber}</p>`
+                      : ""
+                  }
+                </div>
+                <div>
+                  <h3 class="section-title">Summary</h3>
+                  <p class="compact-info"><span class="font-semibold">Items:</span> ${
+                    order.items.length
+                  } | <span class="font-semibold">Total:</span> $${order.total.toFixed(
+      2
+    )}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="print-section items-section">
+              <h3 class="section-title">Order Items</h3>
+              <table class="print-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${order.items
+                    .map(
+                      (item) => `
+                    <tr>
+                      <td>${item.productName}</td>
+                      <td>$${item.price.toFixed(2)}</td>
+                      <td>${item.quantity}</td>
+                      <td>$${item.total.toFixed(2)}</td>
+                    </tr>
+                  `
+                    )
+                    .join("")}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="print-section">
+              <table class="print-table summary-table">
+                <tbody>
+                  <tr>
+                    <td class="font-semibold">Subtotal:</td>
+                    <td class="text-right">$${order.subtotal.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">Tax:</td>
+                    <td class="text-right">$${order.tax.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td class="font-semibold">Shipping:</td>
+                    <td class="text-right">${
+                      order.shipping === 0
+                        ? "Free"
+                        : `$${order.shipping.toFixed(2)}`
+                    }</td>
+                  </tr>
+                  <tr class="print-total-row">
+                    <td class="font-semibold">Total:</td>
+                    <td class="text-right font-semibold">$${order.total.toFixed(
+                      2
+                    )}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="footer">
+              <p>Thank you for your business! | ${
+                PRINT_CONFIG.companyEmail
+              } | ${PRINT_CONFIG.companyWebsite}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printDoc =
+      printFrame.contentDocument || printFrame.contentWindow?.document;
+    if (printDoc) {
+      printDoc.open();
+      printDoc.write(printContent);
+      printDoc.close();
+
+      // Wait for content to load, then print directly
+      printFrame.onload = () => {
+        const printWindow = printFrame.contentWindow;
+        if (printWindow) {
+          // Try to disable browser headers/footers programmatically
+          try {
+            // For Chrome/Edge - disable headers and footers
+            printWindow.print();
+          } catch (e) {
+            // Fallback for other browsers
+            printWindow.print();
+          }
+        }
+        // Remove the iframe after printing
+        setTimeout(() => {
+          document.body.removeChild(printFrame);
+        }, 1000);
+      };
+    }
   };
 
   const getStatusColor = (status: Order["status"]) => {
@@ -271,8 +611,9 @@ export const OrderDetails: React.FC<OrderDetailsProps> = ({
             Close
           </button>
           <button
-            onClick={() => window.print()}
+            onClick={handlePrint}
             className="px-4 py-2 text-sm font-medium text-white bg-pink-600 border border-transparent rounded-md hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+            title="Tip: Uncheck 'Headers and footers' in print settings to remove page URL"
           >
             Print Order
           </button>

@@ -1,15 +1,19 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
+import { useNavigate } from "@remix-run/react";
 import LandingFooter from "../partials/Landing/LandingFooter";
-import { LoginTab } from "../partials/Landing/LoginTab";
-import { RegisterTab } from "../partials/Landing/RegisterTab";
-import { LoginRegisterLabels } from "../partials/Landing/LoginRegisterForm";
-import { CartDrawer } from "../partials/Landing/CartDrawer";
+import { LoginTab } from "../partials/Auth/LoginTab";
+import { RegisterTab } from "../partials/Auth/RegisterTab";
+import { LoginRegisterLabels } from "../partials/Auth/LoginRegisterForm";
+import { CartDrawer } from "../partials/Product/CartDrawer";
 import { LandingHeader } from "../partials/Landing/LandingHeader";
 import { HeroSection } from "../partials/Landing/HeroSection";
-import { ProductGrid } from "../partials/Landing/ProductGrid";
+import { ProductGrid } from "../partials/Product/ProductGrid";
+import { AboutUs } from "../partials/Landing/AboutUs";
+import { Benefits } from "../partials/Landing/Benefits";
+import { CategorySliders } from "../partials/Landing/CategorySliders";
 import { Product } from "~/lib/models";
 
 export interface CartItem extends Product {
@@ -85,6 +89,12 @@ export const ServerProductsContext = createContext<{
   products: Product[];
 }>({ products: [] });
 
+export const ProductNavigationContext = createContext<{
+  onProductClick: (product: Product) => void;
+}>({
+  onProductClick: () => {},
+});
+
 interface LandingProps {
   products?: Product[];
 }
@@ -92,6 +102,7 @@ interface LandingProps {
 export const Landing: React.FC<LandingProps> = ({
   products: serverProducts,
 }) => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -99,6 +110,27 @@ export const Landing: React.FC<LandingProps> = ({
   const [isCartVisible, setIsCartVisible] = useState<boolean>(false);
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
   const [isLoginMode, setIsLoginMode] = useState<boolean>(true);
+  const [isHeaderSticky, setIsHeaderSticky] = useState<boolean>(false);
+
+  // Scroll detection for sticky header visual feedback (client-side only)
+  useEffect(() => {
+    // Only run on client side to prevent hydration issues
+    if (typeof window === "undefined") return;
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+
+      // Get the hero section height to determine when header becomes sticky
+      const heroSection = document.querySelector("section");
+      const heroHeight = heroSection ? heroSection.offsetHeight : 500;
+
+      // Header becomes sticky when we've scrolled past most of the hero section
+      setIsHeaderSticky(scrollY > heroHeight * 0.8);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Use server products if provided, otherwise fall back to context
   console.log(
@@ -140,27 +172,60 @@ export const Landing: React.FC<LandingProps> = ({
     0
   );
 
+  // Navigate to product page
+  const handleProductClick = (product: Product) => {
+    // Create URL with category and product ID
+    const productUrl = `/${product.category}?id=${product.id}`;
+    navigate(productUrl);
+  };
+
   return (
     <div className="min-h-screen bg-white text-gray-800">
-      {/* Header */}
       <AuthContext.Provider value={{ authModalOpen, setAuthModalOpen }}>
         <CategoryContext.Provider value={{ activeCategory, setActiveCategory }}>
           <SearchContext.Provider value={{ searchQuery, setSearchQuery }}>
             <LoginContext.Provider value={{ isLoginMode, setIsLoginMode }}>
-              <LandingHeader onClick={openCart} totalItems={totalItems} />
+              {/* Hero Section */}
+              <HeroSection />
+
+              {/* Header positioned at bottom of hero, sticks to top when scrolling */}
+              <div className="sticky top-0 z-50">
+                <LandingHeader
+                  onClick={openCart}
+                  totalItems={totalItems}
+                  isSticky={isHeaderSticky}
+                />
+              </div>
+
+              {/* About Us Section */}
+              <AboutUs />
+
+              {/* Benefits Section */}
+              <Benefits />
+
+              {/* Category Sliders */}
+              <ServerProductsContext.Provider
+                value={{ products: serverProducts || [] }}
+              >
+                <CategorySliders
+                  products={serverProducts || []}
+                  onProductClick={handleProductClick}
+                />
+              </ServerProductsContext.Provider>
+
+              {/* Product Grid */}
+              <ServerProductsContext.Provider
+                value={{ products: serverProducts || [] }}
+              >
+                <ProductNavigationContext.Provider
+                  value={{ onProductClick: handleProductClick }}
+                >
+                  <CartContext.Provider value={{ cart, setCart }}>
+                    <ProductGrid />
+                  </CartContext.Provider>
+                </ProductNavigationContext.Provider>
+              </ServerProductsContext.Provider>
             </LoginContext.Provider>
-
-            {/* Hero Section */}
-            <HeroSection />
-
-            {/* Product Grid */}
-            <ServerProductsContext.Provider
-              value={{ products: serverProducts || [] }}
-            >
-              <CartContext.Provider value={{ cart, setCart }}>
-                <ProductGrid />
-              </CartContext.Provider>
-            </ServerProductsContext.Provider>
           </SearchContext.Provider>
         </CategoryContext.Provider>
       </AuthContext.Provider>
