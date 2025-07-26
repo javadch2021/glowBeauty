@@ -1,5 +1,6 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useState, useEffect } from "react";
+import { useNotification } from "~/contexts/NotificationContext";
 
 interface Product {
   id: number;
@@ -35,6 +36,7 @@ const ProductPage: React.FC<ProductPageProps> = ({
   const [comment, setComment] = useState<string>("");
   const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
   const [showFullFeatures, setShowFullFeatures] = useState<boolean>(false);
+  const { showSuccess, showError, showWarning } = useNotification();
 
   const [comments, setComments] = useState<
     { rating: number; comment: string; author: string; date: string }[]
@@ -101,26 +103,29 @@ const ProductPage: React.FC<ProductPageProps> = ({
     if (lowerCode === "glow10") {
       setDiscount(10);
       setApplied(true);
+      showSuccess("Coupon GLOW10 applied! 10% discount added.");
     } else if (lowerCode === "save20") {
       setDiscount(20);
       setApplied(true);
+      showSuccess("Coupon SAVE20 applied! 20% discount added.");
     } else if (lowerCode === "beauty15") {
       setDiscount(15);
       setApplied(true);
+      showSuccess("Coupon BEAUTY15 applied! 15% discount added.");
     } else {
-      alert("Invalid coupon code. Try: GLOW10, SAVE20, or BEAUTY15");
+      showWarning("Invalid coupon code. Try: GLOW10, SAVE20, or BEAUTY15");
     }
   };
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
     try {
-      await onAddToCart(product, quantity);
-      // Show success feedback
+      onAddToCart(product, quantity);
+      showSuccess(`${quantity} x ${product.name} added to cart!`);
       setTimeout(() => setIsAddingToCart(false), 1000);
     } catch (error) {
       setIsAddingToCart(false);
-      console.error("Failed to add to cart:", error);
+      showError("Failed to add to cart. Please try again.");
     }
   };
 

@@ -7,6 +7,7 @@ import {
   ProductNavigationContext,
 } from "../../forms/Landing";
 import { Product } from "~/lib/models";
+import { useNotification } from "~/contexts/NotificationContext";
 
 export const ProductGrid: React.FC = () => {
   const { activeCategory } = useContext(CategoryContext);
@@ -14,38 +15,24 @@ export const ProductGrid: React.FC = () => {
   const { setCart } = useContext(CartContext);
   const { products } = useContext(ServerProductsContext);
   const { onProductClick } = useContext(ProductNavigationContext);
+  const { showSuccess } = useNotification();
 
-  // Debug: Log when products change in ProductGrid
-  React.useEffect(() => {
-    console.log(
-      "ProductGrid - Products received from context:",
-      products.length,
-      "products"
-    );
-    console.log(
-      "ProductGrid - Product names:",
-      products.map((p) => p.name)
-    );
-  }, [products]);
   const addToCart = (product: Product) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
       if (existingItem) {
+        showSuccess(`Added another ${product.name} to cart!`);
         return prevCart.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
+        showSuccess(`${product.name} added to cart!`);
         return [...prevCart, { ...product, quantity: 1 }];
       }
     });
   };
-
-  // Debug logging
-  console.log("ProductGrid - searchQuery:", searchQuery);
-  console.log("ProductGrid - activeCategory:", activeCategory);
-  console.log("ProductGrid - products count:", products.length);
 
   const filteredProducts = products.filter(
     (product) =>
@@ -55,10 +42,6 @@ export const ProductGrid: React.FC = () => {
         product.category.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  console.log(
-    "ProductGrid - filtered products count:",
-    filteredProducts.length
-  );
   return (
     <section className="py-12">
       <div className="container mx-auto px-4">

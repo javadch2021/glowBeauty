@@ -7,6 +7,8 @@ import {
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
 import { ProductsProvider } from "~/contexts/ProductsContext";
+import { NotificationProvider } from "~/contexts/NotificationContext";
+import NotificationContainer from "~/components/partials/Notification/NotificationContainer";
 
 import "./tailwind.css";
 
@@ -59,8 +61,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <ProductsProvider>
-      <Outlet />
-    </ProductsProvider>
+    <NotificationProvider>
+      <ProductsProvider>
+        <Outlet />
+        <NotificationContainer />
+      </ProductsProvider>
+    </NotificationProvider>
   );
 }

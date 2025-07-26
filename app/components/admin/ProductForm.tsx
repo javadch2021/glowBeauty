@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Product } from "~/lib/models";
+import { useNotification } from "~/contexts/NotificationContext";
 
 interface ProductFormProps {
   product?: Product | null;
@@ -23,6 +24,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { showSuccess, showError, showWarning } = useNotification();
 
   useEffect(() => {
     if (product) {
@@ -120,6 +122,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     e.preventDefault();
 
     if (!validateForm()) {
+      showError("Please fix the form errors before submitting.");
       return;
     }
 
@@ -131,10 +134,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       category: formData.category.trim(),
     };
 
-    if (product) {
-      onSave({ ...productData, id: product.id });
-    } else {
-      onSave(productData);
+    try {
+      if (product) {
+        onSave({ ...productData, id: product.id });
+        showSuccess(`${productData.name} updated successfully!`);
+      } else {
+        onSave(productData);
+        showSuccess(`${productData.name} added successfully!`);
+      }
+    } catch (error) {
+      showError("Failed to save product. Please try again.");
     }
   };
 
