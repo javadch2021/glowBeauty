@@ -19,6 +19,12 @@ import "./tailwind.css";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   console.log("Root loader - Request URL:", request.url);
+  console.log("Root loader - Request method:", request.method);
+  console.log(
+    "Root loader - Request headers:",
+    Object.fromEntries(request.headers.entries())
+  );
+
   const { customer, headers } = await optionalAuth(request);
   console.log(
     "Root loader - Customer:",

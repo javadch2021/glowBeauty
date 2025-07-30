@@ -20,32 +20,39 @@ export class CartService {
     return this.db.collection<CartItemDocument>("cart_items");
   }
 
-  async addToCart(customerId: number, productId: number, productName: string, productImage: string, price: number, quantity: number = 1): Promise<CartItem> {
+  async addToCart(
+    customerId: number,
+    productId: number,
+    productName: string,
+    productImage: string,
+    price: number,
+    quantity: number = 1
+  ): Promise<CartItem> {
     const collection = await this.getCollection();
-    
+
     // Check if item already exists in cart
     const existingItem = await collection.findOne({ customerId, productId });
-    
+
     if (existingItem) {
       // Update quantity
       const newQuantity = existingItem.quantity + quantity;
       await collection.updateOne(
         { customerId, productId },
-        { 
-          $set: { 
+        {
+          $set: {
             quantity: newQuantity,
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         }
       );
-      
+
       return {
         productId,
         productName,
         productImage,
         price,
         quantity: newQuantity,
-        addedAt: existingItem.addedAt
+        addedAt: existingItem.addedAt,
       };
     } else {
       // Add new item
@@ -57,18 +64,18 @@ export class CartService {
         price,
         quantity,
         addedAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
-      
+
       await collection.insertOne(cartItem);
-      
+
       return {
         productId,
         productName,
         productImage,
         price,
         quantity,
-        addedAt: cartItem.addedAt
+        addedAt: cartItem.addedAt,
       };
     }
   }
@@ -76,38 +83,45 @@ export class CartService {
   async getCart(customerId: number): Promise<CartItem[]> {
     const collection = await this.getCollection();
     const items = await collection.find({ customerId }).toArray();
-    
-    return items.map(item => ({
+
+    return items.map((item) => ({
       productId: item.productId,
       productName: item.productName,
       productImage: item.productImage,
       price: item.price,
       quantity: item.quantity,
-      addedAt: item.addedAt
+      addedAt: item.addedAt,
     }));
   }
 
-  async updateQuantity(customerId: number, productId: number, quantity: number): Promise<boolean> {
+  async updateQuantity(
+    customerId: number,
+    productId: number,
+    quantity: number
+  ): Promise<boolean> {
     const collection = await this.getCollection();
-    
+
     if (quantity <= 0) {
       return this.removeFromCart(customerId, productId);
     }
-    
+
     const result = await collection.updateOne(
       { customerId, productId },
-      { 
-        $set: { 
+      {
+        $set: {
           quantity,
-          updatedAt: new Date()
-        }
+          updatedAt: new Date(),
+        },
       }
     );
-    
+
     return result.modifiedCount > 0;
   }
 
-  async removeFromCart(customerId: number, productId: number): Promise<boolean> {
+  async removeFromCart(
+    customerId: number,
+    productId: number
+  ): Promise<boolean> {
     const collection = await this.getCollection();
     const result = await collection.deleteOne({ customerId, productId });
     return result.deletedCount > 0;
