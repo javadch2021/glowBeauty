@@ -39,7 +39,9 @@ export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({
   children,
   customer,
 }) => {
+  console.log("CustomerAuthProvider - Customer data:", customer);
   const isAuthenticated = customer !== null;
+  console.log("CustomerAuthProvider - isAuthenticated:", isAuthenticated);
 
   const login = async (
     email: string,

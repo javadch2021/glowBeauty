@@ -3,12 +3,17 @@ import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import { productService } from "~/lib/services.server";
 import ProductPage from "~/components/partials/Product/ProductPage";
+import { useCart } from "~/contexts/CartContext";
+import { optionalAuth } from "~/lib/auth.middleware";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.product) {
     return [
       { title: "Product Not Found" },
-      { name: "description", content: "The requested product could not be found." },
+      {
+        name: "description",
+        content: "The requested product could not be found.",
+      },
     ];
   }
 
@@ -21,17 +26,19 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   const productId = params.id;
-  
+
   if (!productId) {
     throw new Response("Product ID is required", { status: 400 });
   }
 
   try {
+    // Get authentication state
+    const { customer, headers } = await optionalAuth(request);
     // Get the main product
     const product = await productService.getById(productId);
-    
+
     if (!product) {
       throw new Response("Product not found", { status: 404 });
     }
@@ -39,7 +46,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     // Get related products (same category, excluding current product)
     const allProducts = await productService.getAll();
     const relatedProducts = allProducts
-      .filter(p => p.category === product.category && p.id !== product.id)
+      .filter((p) => p.category === product.category && p.id !== product.id)
       .slice(0, 4);
 
     // Transform product to match ProductPage interface
@@ -58,11 +65,11 @@ export async function loader({ params }: LoaderFunctionArgs) {
         "Cruelty-free",
         "Suitable for all skin types",
         "Fast-absorbing formula",
-        "Long-lasting results"
-      ]
+        "Long-lasting results",
+      ],
     };
 
-    const transformedRelatedProducts = relatedProducts.map(p => ({
+    const transformedRelatedProducts = relatedProducts.map((p) => ({
       id: parseInt(p.id),
       name: p.name,
       description: p.description,
@@ -70,13 +77,17 @@ export async function loader({ params }: LoaderFunctionArgs) {
       images: [p.image],
       category: p.category,
       inStock: true,
-      brand: "GlowBeauty"
+      brand: "GlowBeauty",
     }));
 
-    return json({ 
-      product: transformedProduct, 
-      relatedProducts: transformedRelatedProducts 
-    });
+    return json(
+      {
+        product: transformedProduct,
+        relatedProducts: transformedRelatedProducts,
+        customer,
+      },
+      { headers }
+    );
   } catch (error) {
     console.error("Error loading product:", error);
     throw new Response("Failed to load product", { status: 500 });
@@ -86,24 +97,34 @@ export async function loader({ params }: LoaderFunctionArgs) {
 export default function ProductRoute() {
   const { product, relatedProducts } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
 
   const handleBack = () => {
     navigate(-1); // Go back to previous page
   };
 
   const handleAddToCart = async (product: any, quantity: number) => {
-    // Here you would typically:
-    // 1. Add to cart state/context
-    // 2. Make API call to add to cart
-    // 3. Show success notification
-    
-    console.log(`Adding ${quantity} of ${product.name} to cart`);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // You could also show a toast notification here
-    alert(`Added ${quantity} ${product.name} to cart!`);
+    console.log("Product page - Adding to cart:", {
+      id: product.id,
+      name: product.name,
+      image: product.images?.[0] || product.image,
+      price: product.price,
+      quantity,
+    });
+
+    try {
+      await addToCart(
+        product.id,
+        product.name,
+        product.images?.[0] || product.image, // Use first image from array or single image field
+        product.price,
+        quantity
+      );
+      console.log("Product page - Successfully added to cart");
+      // The addToCart function from useCart already shows success notification
+    } catch (error) {
+      console.error("Product page - Failed to add to cart:", error);
+    }
   };
 
   return (
