@@ -53,20 +53,20 @@ export async function action({ request }: ActionFunctionArgs) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await request.formData();
-    const action = formData.get("action") as string;
+    const requestData = await request.json();
+    const action = requestData.action as string;
 
     console.log("API Cart - Action:", action);
-    console.log("API Cart - FormData entries:", Array.from(formData.entries()));
+    console.log("API Cart - Request data:", requestData);
 
     try {
       switch (action) {
         case "add": {
-          const productId = parseInt(formData.get("productId") as string);
-          const productName = formData.get("productName") as string;
-          const productImage = formData.get("productImage") as string;
-          const price = parseFloat(formData.get("price") as string);
-          const quantity = parseInt(formData.get("quantity") as string) || 1;
+          const productId = parseInt(requestData.productId);
+          const productName = requestData.productName;
+          const productImage = requestData.productImage;
+          const price = parseFloat(requestData.price);
+          const quantity = parseInt(requestData.quantity) || 1;
 
           console.log("API Cart - Add case - Parsed data:", {
             customerId: customer.id,
@@ -92,8 +92,8 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         case "update": {
-          const productId = parseInt(formData.get("productId") as string);
-          const quantity = parseInt(formData.get("quantity") as string);
+          const productId = parseInt(requestData.productId);
+          const quantity = parseInt(requestData.quantity);
 
           const success = await cartService.updateQuantity(
             customer.id,
@@ -105,7 +105,7 @@ export async function action({ request }: ActionFunctionArgs) {
         }
 
         case "remove": {
-          const productId = parseInt(formData.get("productId") as string);
+          const productId = parseInt(requestData.productId);
           const success = await cartService.removeFromCart(
             customer.id,
             productId
@@ -133,3 +133,5 @@ export async function action({ request }: ActionFunctionArgs) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 }
+
+

@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { CartItem } from "~/lib/models";
@@ -47,7 +48,7 @@ export function CartProvider({ children }: CartProviderProps) {
   const { isAuthenticated } = useCustomerAuth();
   const { showSuccess, showError } = useNotification();
 
-  const refreshCart = async () => {
+  const refreshCart = useCallback(async () => {
     console.log(
       "CartContext - refreshCart called, isAuthenticated:",
       isAuthenticated
@@ -72,7 +73,7 @@ export function CartProvider({ children }: CartProviderProps) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("CartContext - Refresh response data:", data);
+        console.log("CartContext - Parsed response data:", data);
         setCart(data.cart || []);
         setCartCount(data.cartCount || 0);
         console.log(
@@ -93,11 +94,11 @@ export function CartProvider({ children }: CartProviderProps) {
       }
     } catch (error) {
       console.error("CartContext - Failed to refresh cart:", error);
-      showError("Failed to load cart");
+      // Don't show error notification for cart refresh to avoid dependency issues
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   const addToCart = async (
     productId: number,
@@ -121,38 +122,51 @@ export function CartProvider({ children }: CartProviderProps) {
     }
 
     try {
-      const formData = new FormData();
-      formData.append("action", "add");
-      formData.append("productId", productId.toString());
-      formData.append("productName", productName);
-      formData.append("productImage", productImage);
-      formData.append("price", price.toString());
-      formData.append("quantity", quantity.toString());
+      const requestData = {
+        action: "add",
+        productId: productId.toString(),
+        productName,
+        productImage,
+        price: price.toString(),
+        quantity: quantity.toString(),
+      };
 
       console.log("CartContext - Sending request to /api/cart");
-      console.log(
-        "CartContext - FormData being sent:",
-        Array.from(formData.entries())
-      );
+      console.log("CartContext - Request data being sent:", requestData);
 
       const response = await fetch("/api/cart", {
         method: "POST",
         credentials: "include",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
       });
 
       console.log("CartContext - Response status:", response.status);
-      const responseData = await response.json();
-      console.log("CartContext - Response data:", responseData);
+      const responseText = await response.text();
+      console.log("CartContext - Raw response text:", responseText);
 
-      if (response.ok) {
-        console.log("CartContext - Refreshing cart after successful add");
-        await refreshCart();
-      } else {
+      try {
+        const responseData = JSON.parse(responseText);
+        console.log("CartContext - Parsed response data:", responseData);
+
+        if (response.ok) {
+          console.log("CartContext - Refreshing cart after successful add");
+          await refreshCart();
+        } else {
+          console.error(
+            "CartContext - Failed to add item, response:",
+            responseData
+          );
+          showError("Failed to add item to cart");
+        }
+      } catch (parseError) {
         console.error(
-          "CartContext - Failed to add item, response:",
-          responseData
+          "CartContext - Failed to parse JSON response:",
+          parseError
         );
+        console.error("CartContext - Response was:", responseText);
         showError("Failed to add item to cart");
       }
     } catch (error) {
@@ -168,15 +182,19 @@ export function CartProvider({ children }: CartProviderProps) {
     }
 
     try {
-      const formData = new FormData();
-      formData.append("action", "update");
-      formData.append("productId", productId.toString());
-      formData.append("quantity", quantity.toString());
+      const requestData = {
+        action: "update",
+        productId: productId.toString(),
+        quantity: quantity.toString(),
+      };
 
       const response = await fetch("/api/cart", {
         method: "POST",
         credentials: "include",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
       });
 
       if (response.ok) {
@@ -197,14 +215,18 @@ export function CartProvider({ children }: CartProviderProps) {
     }
 
     try {
-      const formData = new FormData();
-      formData.append("action", "remove");
-      formData.append("productId", productId.toString());
+      const requestData = {
+        action: "remove",
+        productId: productId.toString(),
+      };
 
       const response = await fetch("/api/cart", {
         method: "POST",
         credentials: "include",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
       });
 
       if (response.ok) {
@@ -226,13 +248,17 @@ export function CartProvider({ children }: CartProviderProps) {
     }
 
     try {
-      const formData = new FormData();
-      formData.append("action", "clear");
+      const requestData = {
+        action: "clear",
+      };
 
       const response = await fetch("/api/cart", {
         method: "POST",
         credentials: "include",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
       });
 
       if (response.ok) {
@@ -249,31 +275,34 @@ export function CartProvider({ children }: CartProviderProps) {
 
   // Load cart on mount and when auth state changes
   useEffect(() => {
-    refreshCart();
-  }, [isAuthenticated]);
+    if (isAuthenticated) {
+      refreshCart();
+    }
+  }, [isAuthenticated, refreshCart]);
 
+  // Temporarily disabled to fix infinite loop
   // Refresh cart when the page becomes visible (user navigates back)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && isAuthenticated) {
-        refreshCart();
-      }
-    };
+  // useEffect(() => {
+  //   const handleVisibilityChange = () => {
+  //     if (!document.hidden && isAuthenticated) {
+  //       refreshCart();
+  //     }
+  //   };
 
-    const handleFocus = () => {
-      if (isAuthenticated) {
-        refreshCart();
-      }
-    };
+  //   const handleFocus = () => {
+  //     if (isAuthenticated) {
+  //       refreshCart();
+  //     }
+  //   };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("focus", handleFocus);
+  //   document.addEventListener("visibilitychange", handleVisibilityChange);
+  //   window.addEventListener("focus", handleFocus);
 
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [isAuthenticated]);
+  //   return () => {
+  //     document.removeEventListener("visibilitychange", handleVisibilityChange);
+  //     window.removeEventListener("focus", handleFocus);
+  //   };
+  // }, [isAuthenticated, refreshCart]);
 
   const value: CartContextType = {
     cart,
