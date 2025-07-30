@@ -4,13 +4,24 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
-import type { LinksFunction } from "@remix-run/node";
+import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { ProductsProvider } from "~/contexts/ProductsContext";
 import { NotificationProvider } from "~/contexts/NotificationContext";
 import NotificationContainer from "~/components/partials/Notification/NotificationContainer";
+import { CustomerAuthProvider } from "~/contexts/CustomerAuthContext";
+import { optionalAuth } from "~/lib/auth.middleware";
+import type { AuthCustomer } from "~/lib/models";
 
 import "./tailwind.css";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const { customer, headers } = await optionalAuth(request);
+
+  return json({ customer }, { headers });
+}
 
 export const links: LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -60,12 +71,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const { customer } = useLoaderData<typeof loader>();
+
   return (
     <NotificationProvider>
-      <ProductsProvider>
-        <Outlet />
-        <NotificationContainer />
-      </ProductsProvider>
+      <CustomerAuthProvider customer={customer}>
+        <ProductsProvider>
+          <Outlet />
+          <NotificationContainer />
+        </ProductsProvider>
+      </CustomerAuthProvider>
     </NotificationProvider>
   );
 }

@@ -1,10 +1,11 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import {
   AuthContext,
   CategoryContext,
   LoginContext,
   SearchContext,
 } from "../../forms/Landing";
+import { useCustomerAuth } from "~/contexts/CustomerAuthContext";
 
 interface LandingHeaderProps {
   onClick: () => void;
@@ -21,6 +22,8 @@ export const LandingHeader = ({
   const { searchQuery, setSearchQuery } = useContext(SearchContext);
   const { setAuthModalOpen } = useContext(AuthContext);
   const { setActiveCategory } = useContext(CategoryContext);
+  const { customer, isAuthenticated, logout } = useCustomerAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
     <header
@@ -63,12 +66,77 @@ export const LandingHeader = ({
             </button>
           </nav>
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setAuthModalOpen(true)}
-              className="text-sm hover:text-pink-600 transition"
-            >
-              {isLoginMode ? "Login" : "Register"}
-            </button>
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-2 text-sm hover:text-pink-600 transition"
+                >
+                  <div className="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center">
+                    {customer?.name.charAt(0).toUpperCase()}
+                  </div>
+                  <span>Hi, {customer?.name.split(" ")[0]}</span>
+                  <svg
+                    className={`w-4 h-4 transition-transform ${
+                      showUserMenu ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                      <div className="font-medium">{customer?.name}</div>
+                      <div className="text-gray-500">{customer?.email}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        // Navigate to profile page when implemented
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      My Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        // Navigate to orders page when implemented
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      My Orders
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        logout();
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setAuthModalOpen(true)}
+                className="text-sm hover:text-pink-600 transition"
+              >
+                {isLoginMode ? "Login" : "Register"}
+              </button>
+            )}
             <input
               type="text"
               placeholder="Search products..."
@@ -113,12 +181,66 @@ export const LandingHeader = ({
           <div className="flex justify-between items-center mb-3">
             <h1 className="text-xl font-bold text-pink-600">GlowBeauty</h1>
             <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setAuthModalOpen(true)}
-                className="text-sm hover:text-pink-600 transition px-2 py-1"
-              >
-                {isLoginMode ? "Login" : "Register"}
-              </button>
+              {isAuthenticated ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center space-x-1 text-sm hover:text-pink-600 transition px-2 py-1"
+                  >
+                    <div className="w-6 h-6 bg-pink-600 text-white rounded-full flex items-center justify-center text-xs">
+                      {customer?.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="hidden sm:inline">
+                      {customer?.name.split(" ")[0]}
+                    </span>
+                  </button>
+
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                      <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                        <div className="font-medium">{customer?.name}</div>
+                        <div className="text-gray-500 text-xs">
+                          {customer?.email}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          // Navigate to profile page when implemented
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        My Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          // Navigate to orders page when implemented
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        My Orders
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          logout();
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  onClick={() => setAuthModalOpen(true)}
+                  className="text-sm hover:text-pink-600 transition px-2 py-1"
+                >
+                  {isLoginMode ? "Login" : "Register"}
+                </button>
+              )}
               <button
                 aria-label="View Cart"
                 onClick={onClick}

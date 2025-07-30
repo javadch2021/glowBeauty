@@ -7,7 +7,6 @@ export const RegisterTab: React.FC = () => {
     <button
       type="button"
       onClick={() => setIsLoginMode(false)}
-      disabled
       className="relative py-2 text-lg font-medium focus:outline-none"
     >
       <span

@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { ObjectId } from "mongodb";
 
 // Base interface for MongoDB documents
 export interface BaseDocument {
@@ -31,22 +31,67 @@ export interface CustomerDocument extends BaseDocument {
   id: number; // Keep the original numeric ID for compatibility
   name: string;
   email: string;
-  phone: string;
-  address: string;
+  password: string; // Hashed password
+  phone?: string;
+  address?: string;
   joinDate: string;
   totalOrders: number;
   totalSpent: number;
+  isEmailVerified: boolean;
+  lastLoginAt?: Date;
+  refreshToken?: string;
+  cartItems?: CartItemDocument[];
 }
 
 export interface Customer {
   id: number;
   name: string;
   email: string;
-  phone: string;
-  address: string;
+  phone?: string;
+  address?: string;
   joinDate: string;
   totalOrders: number;
   totalSpent: number;
+  isEmailVerified: boolean;
+  lastLoginAt?: Date;
+}
+
+// Authentication interfaces
+export interface AuthCustomer {
+  id: number;
+  name: string;
+  email: string;
+  isEmailVerified: boolean;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password: string;
+}
+
+// Cart interfaces for authenticated users
+export interface CartItemDocument {
+  productId: number;
+  productName: string;
+  productImage: string;
+  price: number;
+  quantity: number;
+  addedAt: Date;
+}
+
+export interface CartItem {
+  productId: number;
+  productName: string;
+  productImage: string;
+  price: number;
+  quantity: number;
+  addedAt: Date;
 }
 
 // Order item interfaces
@@ -140,7 +185,9 @@ export function documentToProduct(doc: ProductDocument): Product {
   };
 }
 
-export function productToDocument(product: Product): Omit<ProductDocument, '_id' | 'createdAt' | 'updatedAt'> {
+export function productToDocument(
+  product: Product
+): Omit<ProductDocument, "_id" | "createdAt" | "updatedAt"> {
   return {
     id: product.id,
     name: product.name,
@@ -161,10 +208,17 @@ export function documentToCustomer(doc: CustomerDocument): Customer {
     joinDate: doc.joinDate,
     totalOrders: doc.totalOrders,
     totalSpent: doc.totalSpent,
+    isEmailVerified: doc.isEmailVerified,
+    lastLoginAt: doc.lastLoginAt,
   };
 }
 
-export function customerToDocument(customer: Customer): Omit<CustomerDocument, '_id' | 'createdAt' | 'updatedAt'> {
+export function customerToDocument(
+  customer: Customer
+): Omit<
+  CustomerDocument,
+  "_id" | "createdAt" | "updatedAt" | "password" | "refreshToken" | "cartItems"
+> {
   return {
     id: customer.id,
     name: customer.name,
@@ -174,6 +228,17 @@ export function customerToDocument(customer: Customer): Omit<CustomerDocument, '
     joinDate: customer.joinDate,
     totalOrders: customer.totalOrders,
     totalSpent: customer.totalSpent,
+    isEmailVerified: customer.isEmailVerified,
+    lastLoginAt: customer.lastLoginAt,
+  };
+}
+
+export function documentToAuthCustomer(doc: CustomerDocument): AuthCustomer {
+  return {
+    id: doc.id,
+    name: doc.name,
+    email: doc.email,
+    isEmailVerified: doc.isEmailVerified,
   };
 }
 
@@ -196,7 +261,9 @@ export function documentToOrder(doc: OrderDocument): Order {
   };
 }
 
-export function orderToDocument(order: Order): Omit<OrderDocument, '_id' | 'createdAt' | 'updatedAt'> {
+export function orderToDocument(
+  order: Order
+): Omit<OrderDocument, "_id" | "createdAt" | "updatedAt"> {
   return {
     id: order.id,
     customerId: order.customerId,
@@ -224,7 +291,9 @@ export function documentToActivity(doc: ActivityDocument): ActivityItem {
   };
 }
 
-export function activityToDocument(activity: ActivityItem): Omit<ActivityDocument, '_id' | 'createdAt' | 'updatedAt'> {
+export function activityToDocument(
+  activity: ActivityItem
+): Omit<ActivityDocument, "_id" | "createdAt" | "updatedAt"> {
   return {
     id: activity.id,
     type: activity.type,

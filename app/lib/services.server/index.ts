@@ -1,6 +1,10 @@
 // Export all services
 export { ProductService, productService } from "./ProductService";
 export { CustomerService, customerService } from "./CustomerService";
+export {
+  CustomerAuthService,
+  customerAuthService,
+} from "./CustomerAuthService";
 export { OrderService, orderService } from "./OrderService";
 export { ActivityService, activityService } from "./ActivityService";
 

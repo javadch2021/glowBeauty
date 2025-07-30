@@ -6,7 +6,6 @@ export const LoginTab: React.FC = () => {
   return (
     <button
       type="button"
-      disabled
       onClick={() => setIsLoginMode(true)}
       className="relative py-2 text-lg font-medium focus:outline-none"
     >
