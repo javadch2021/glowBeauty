@@ -190,11 +190,7 @@ export const Landing: React.FC<LandingProps> = ({
 
               {/* Header positioned at bottom of hero, sticks to top when scrolling */}
               <div className="sticky top-0 z-50">
-                <LandingHeader
-                  onClick={openCart}
-                  totalItems={totalItems}
-                  isSticky={isHeaderSticky}
-                />
+                <LandingHeader onClick={openCart} isSticky={isHeaderSticky} />
               </div>
 
               {/* About Us Section */}

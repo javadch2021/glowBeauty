@@ -119,7 +119,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="sticky top-0 z-50">
                   <HeaderSection
                     onCartClick={openCart}
-                    totalItems={totalItems}
                     isSticky={isHeaderSticky}
                   />
                 </div>

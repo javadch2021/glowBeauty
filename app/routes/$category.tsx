@@ -1,8 +1,8 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
 import { productService } from "~/lib/services.server";
 import ProductPage from "~/components/partials/Product/ProductPage";
+import { useCart } from "~/contexts/CartContext";
 
 export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
   if (!data?.product) {
@@ -26,7 +26,7 @@ export const meta: MetaFunction<typeof loader> = ({ data, params }) => {
     { name: "description", content: data.product.description },
     { property: "og:title", content: data.product.name },
     { property: "og:description", content: data.product.description },
-    { property: "og:image", content: data.product.image },
+    { property: "og:image", content: data.product.images?.[0] || "" },
   ];
 };
 
@@ -97,7 +97,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       brand: "GlowBeauty",
     }));
 
-    return json({
+    return Response.json({
       product: transformedProduct,
       relatedProducts: transformedRelatedProducts,
       category,
@@ -169,24 +169,27 @@ export default function CategoryProductRoute() {
   const { product, relatedProducts } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { addToCart } = useCart();
 
   const handleBack = () => {
     navigate("/"); // Go back to home page
   };
 
   const handleAddToCart = async (product: any, quantity: number) => {
-    // Here you would typically:
-    // 1. Add to cart state/context
-    // 2. Make API call to add to cart
-    // 3. Show success notification
-
     console.log(`Adding ${quantity} of ${product.name} to cart`);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    // You could also show a toast notification here
-    alert(`Added ${quantity} ${product.name} to cart!`);
+    try {
+      await addToCart(
+        product.id,
+        product.name,
+        product.images?.[0] || product.image, // Use first image from array or single image field
+        product.price,
+        quantity
+      );
+      // The addToCart function from useCart already shows success notification
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+    }
   };
 
   const handleProductClick = (product: any) => {
