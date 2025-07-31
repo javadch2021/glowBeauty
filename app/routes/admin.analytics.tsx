@@ -1,7 +1,7 @@
 import type { MetaFunction } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
-import { AdminLayout } from "~/components/admin/AdminLayout";
-import { AnalyticsDashboard } from "~/components/admin/AnalyticsDashboard";
+import { AdminLayout } from "~/components/separateUserSide/admin/AdminLayout";
+import { AnalyticsDashboard } from "~/components/separateUserSide/admin/AnalyticsDashboard";
 import { productService, orderService } from "~/lib/services.server";
 import { generateAnalyticsData } from "~/lib/utils/analytics";
 
