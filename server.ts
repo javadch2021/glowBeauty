@@ -21,7 +21,8 @@ const remixHandler = createRequestHandler({
         viteDevServer.ssrLoadModule(
           "virtual:remix/server-build"
         ) as Promise<ServerBuild>
-    : ((await import("./build/server/index.js").catch(() => {
+    : // @ts-expect-error - API routes without default exports are valid but cause type issues
+      ((await import("./build/server/index.js").catch(() => {
         throw new Error(
           "Production build not found. Run 'npm run build:all' first."
         );
@@ -61,13 +62,13 @@ const port: string | number = process.env.PORT || 3000;
 async function startServer() {
   try {
     await initializeDatabase();
-    console.log("✅ Database initialized successfully");
+    console.log("Database initialized successfully");
 
     app.listen(port, () =>
       console.log(`Express server listening at http://localhost:${port}`)
     );
   } catch (error) {
-    console.error("❌ Failed to initialize database:", error);
+    console.error("Failed to initialize database:", error);
     process.exit(1);
   }
 }
