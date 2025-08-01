@@ -1,4 +1,5 @@
 import { useContext, useState } from "react";
+import { useNavigate } from "@remix-run/react";
 import {
   AuthContext,
   CategoryContext,
@@ -26,6 +27,12 @@ export const LandingHeader = ({
   const { cartCount } = useCart();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleNavigateToDashboard = (tab: string) => {
+    setShowUserMenu(false);
+    navigate(`/dashboard?tab=${tab}`);
+  };
 
   return (
     <>
@@ -109,22 +116,28 @@ export const LandingHeader = ({
                         <div className="text-gray-500">{customer?.email}</div>
                       </div>
                       <button
-                        onClick={() => {
-                          setShowUserMenu(false);
-                          // Navigate to profile page when implemented
-                        }}
+                        onClick={() => handleNavigateToDashboard("profile")}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         My Profile
                       </button>
                       <button
-                        onClick={() => {
-                          setShowUserMenu(false);
-                          // Navigate to orders page when implemented
-                        }}
+                        onClick={() => handleNavigateToDashboard("orders")}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >
                         My Orders
+                      </button>
+                      <button
+                        onClick={() => handleNavigateToDashboard("tickets")}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Support
+                      </button>
+                      <button
+                        onClick={() => handleNavigateToDashboard("history")}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Purchase History
                       </button>
                       <button
                         onClick={() => {
@@ -213,22 +226,28 @@ export const LandingHeader = ({
                           </div>
                         </div>
                         <button
-                          onClick={() => {
-                            setShowUserMenu(false);
-                            // Navigate to profile page when implemented
-                          }}
+                          onClick={() => handleNavigateToDashboard("profile")}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           My Profile
                         </button>
                         <button
-                          onClick={() => {
-                            setShowUserMenu(false);
-                            // Navigate to orders page when implemented
-                          }}
+                          onClick={() => handleNavigateToDashboard("orders")}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           My Orders
+                        </button>
+                        <button
+                          onClick={() => handleNavigateToDashboard("tickets")}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Support
+                        </button>
+                        <button
+                          onClick={() => handleNavigateToDashboard("history")}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Purchase History
                         </button>
                         <button
                           onClick={() => {

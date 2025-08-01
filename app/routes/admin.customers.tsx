@@ -1,9 +1,9 @@
 import type { MetaFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { useState } from "react";
 import { useLoaderData } from "@remix-run/react";
-import { AdminLayout } from "~/components/admin/AdminLayout";
-import { CustomerList } from "~/components/admin/CustomerList";
-import { CustomerDetails } from "~/components/admin/CustomerDetails";
+import { AdminLayout } from "~/components/separateUserSide/admin/AdminLayout";
+import { CustomerList } from "~/components/separateUserSide/admin/CustomerList";
+import { CustomerDetails } from "~/components/separateUserSide/admin/CustomerDetails";
 import { Customer } from "~/lib/models";
 import { customerService } from "~/lib/services.server";
 
