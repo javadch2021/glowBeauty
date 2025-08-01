@@ -2,36 +2,22 @@ import React, { useContext } from "react";
 import {
   CategoryContext,
   SearchContext,
-  CartContext,
   ServerProductsContext,
   ProductNavigationContext,
 } from "../../forms/Landing";
 import { Product } from "~/lib/models";
 import { useNotification } from "~/contexts/NotificationContext";
+import { useCart } from "~/contexts/CartContext";
 
 export const ProductGrid: React.FC = () => {
   const { activeCategory } = useContext(CategoryContext);
   const { searchQuery } = useContext(SearchContext);
-  const { setCart } = useContext(CartContext);
   const { products } = useContext(ServerProductsContext);
   const { onProductClick } = useContext(ProductNavigationContext);
-  const { showSuccess } = useNotification();
+  const { addToCart } = useCart();
 
-  const addToCart = (product: Product) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
-      if (existingItem) {
-        showSuccess(`Added another ${product.name} to cart!`);
-        return prevCart.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      } else {
-        showSuccess(`${product.name} added to cart!`);
-        return [...prevCart, { ...product, quantity: 1 }];
-      }
-    });
+  const handleAddToCart = async (product: Product) => {
+    await addToCart(product.id, product.name, product.image, product.price, 1);
   };
 
   const filteredProducts = products.filter(
@@ -77,7 +63,7 @@ export const ProductGrid: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent triggering product navigation
-                      addToCart(product);
+                      handleAddToCart(product);
                     }}
                     className="bg-pink-600 text-white px-3 py-1 rounded-md text-sm hover:bg-pink-700 transition"
                   >

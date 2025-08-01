@@ -7,20 +7,31 @@ import {
   useLoaderData,
 } from "@remix-run/react";
 import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import { ProductsProvider } from "~/contexts/ProductsContext";
 import { NotificationProvider } from "~/contexts/NotificationContext";
 import NotificationContainer from "~/components/partials/Notification/NotificationContainer";
 import { CustomerAuthProvider } from "~/contexts/CustomerAuthContext";
+import { CartProvider } from "~/contexts/CartContext";
 import { optionalAuth } from "~/lib/auth.middleware";
 import type { AuthCustomer } from "~/lib/models";
 
 import "./tailwind.css";
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { customer, headers } = await optionalAuth(request);
+  console.log("Root loader - Request URL:", request.url);
+  console.log("Root loader - Request method:", request.method);
+  console.log(
+    "Root loader - Request headers:",
+    Object.fromEntries(request.headers.entries())
+  );
 
-  return json({ customer }, { headers });
+  const { customer, headers } = await optionalAuth(request);
+  console.log(
+    "Root loader - Customer:",
+    customer ? `ID: ${customer.id}` : "Not authenticated"
+  );
+
+  return Response.json({ customer }, { headers });
 }
 
 export const links: LinksFunction = () => [
@@ -76,10 +87,12 @@ export default function App() {
   return (
     <NotificationProvider>
       <CustomerAuthProvider customer={customer}>
-        <ProductsProvider>
-          <Outlet />
-          <NotificationContainer />
-        </ProductsProvider>
+        <CartProvider>
+          <ProductsProvider>
+            <Outlet />
+            <NotificationContainer />
+          </ProductsProvider>
+        </CartProvider>
       </CustomerAuthProvider>
     </NotificationProvider>
   );
