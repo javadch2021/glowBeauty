@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { useLoaderData, useNavigate, useSearchParams } from "@remix-run/react";
+import { useLoaderData, useNavigate } from "@remix-run/react";
 import { productService } from "~/lib/services.server";
 import ProductPage from "~/components/partials/Product/ProductPage";
 import { useCart } from "~/contexts/CartContext";
@@ -168,7 +168,6 @@ function getCategoryFeatures(category: string): string[] {
 export default function CategoryProductRoute() {
   const { product, relatedProducts } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
 
   const handleBack = () => {
