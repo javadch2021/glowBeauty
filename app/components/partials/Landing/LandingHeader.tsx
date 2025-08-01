@@ -42,43 +42,49 @@ export const LandingHeader = ({
             <h1 className="text-xl md:text-2xl font-bold text-pink-600">
               GlowBeauty
             </h1>
-            <nav className="space-x-6 flex">
+
+            {/* Navigation with proper spacing */}
+            <nav className="flex space-x-4 lg:space-x-6 mx-4 lg:mx-8">
               <button
                 onClick={() => setActiveCategory("all")}
-                className="hover:text-pink-600 transition"
+                className="hover:text-pink-600 transition whitespace-nowrap"
               >
                 All
               </button>
               <button
                 onClick={() => setActiveCategory("skincare")}
-                className="hover:text-pink-600 transition"
+                className="hover:text-pink-600 transition whitespace-nowrap"
               >
                 Skincare
               </button>
               <button
                 onClick={() => setActiveCategory("makeup")}
-                className="hover:text-pink-600 transition"
+                className="hover:text-pink-600 transition whitespace-nowrap"
               >
                 Makeup
               </button>
               <button
                 onClick={() => setActiveCategory("nails")}
-                className="hover:text-pink-600 transition"
+                className="hover:text-pink-600 transition whitespace-nowrap"
               >
                 Nails
               </button>
             </nav>
-            <div className="flex items-center space-x-4">
+
+            {/* Right side controls with proper spacing */}
+            <div className="flex items-center space-x-2 lg:space-x-4 flex-shrink-0">
               {isAuthenticated ? (
                 <div className="relative">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="flex items-center space-x-2 text-sm hover:text-pink-600 transition"
+                    className="flex items-center space-x-1 lg:space-x-2 text-sm hover:text-pink-600 transition"
                   >
                     <div className="w-8 h-8 bg-pink-600 text-white rounded-full flex items-center justify-center">
                       {customer?.name.charAt(0).toUpperCase()}
                     </div>
-                    <span>Hi, {customer?.name.split(" ")[0]}</span>
+                    <span className="hidden lg:inline">
+                      Hi, {customer?.name.split(" ")[0]}
+                    </span>
                     <svg
                       className={`w-4 h-4 transition-transform ${
                         showUserMenu ? "rotate-180" : ""
@@ -135,7 +141,7 @@ export const LandingHeader = ({
               ) : (
                 <button
                   onClick={() => setAuthModalOpen(true)}
-                  className="text-sm hover:text-pink-600 transition"
+                  className="text-sm hover:text-pink-600 transition whitespace-nowrap px-2"
                 >
                   {isLoginMode ? "Login" : "Register"}
                 </button>
@@ -148,7 +154,7 @@ export const LandingHeader = ({
                   console.log("Search input changed:", e.target.value);
                   setSearchQuery(e.target.value);
                 }}
-                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 w-64 text-gray-900 bg-white placeholder-gray-500"
+                className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-pink-400 w-32 md:w-48 lg:w-64 text-gray-900 bg-white placeholder-gray-500"
               />
               <button
                 aria-label="View Cart"
