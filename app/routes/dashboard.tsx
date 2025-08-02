@@ -44,3 +44,4 @@ export default function Dashboard() {
 
   return <CustomerDashboard initialTab={currentTab} />;
 }
+}

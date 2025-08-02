@@ -6,9 +6,9 @@ import type {
 import { json } from "@remix-run/node";
 import { useState, useEffect } from "react";
 import { useLoaderData, useFetcher } from "@remix-run/react";
-import { AdminLayout } from "~/components/admin/AdminLayout";
-import { OrderList } from "~/components/admin/OrderList";
-import { OrderDetails } from "~/components/admin/OrderDetails";
+import { AdminLayout } from "~/components/separateUserSide/admin/AdminLayout";
+import { OrderList } from "~/components/separateUserSide/admin/OrderList";
+import { OrderDetails } from "~/components/separateUserSide/admin/OrderDetails";
 import { Order } from "~/lib/models";
 import { orderService } from "~/lib/services.server";
 import { calculateOrderStats } from "~/lib/utils/analytics";
