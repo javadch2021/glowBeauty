@@ -193,8 +193,7 @@ export class CustomerService {
    */
   async updateStats(
     customerId: number,
-    totalOrders: number,
-    totalSpent: number
+    stats: { totalOrders: number; totalSpent: number }
   ): Promise<void> {
     try {
       const collection = await this.getCollection();
@@ -202,8 +201,8 @@ export class CustomerService {
         { id: customerId },
         {
           $set: {
-            totalOrders,
-            totalSpent,
+            totalOrders: stats.totalOrders,
+            totalSpent: stats.totalSpent,
             updatedAt: new Date(),
           },
         }
