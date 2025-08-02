@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "~/contexts/CartContext";
+import { useNotification } from "~/contexts/NotificationContext";
+import { useNavigate } from "@remix-run/react";
 
 interface PersistentCartDrawerProps {
   isOpen: boolean;
@@ -18,13 +20,54 @@ export const PersistentCartDrawer: React.FC<PersistentCartDrawerProps> = ({
     clearCart,
     isLoading,
   } = useCart();
+  const { showSuccess, showError } = useNotification();
+  const navigate = useNavigate();
   const [isVisible, setIsVisible] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   const totalPrice = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+
+  const handleCheckout = async () => {
+    if (cart.length === 0) {
+      showError("Your cart is empty");
+      return;
+    }
+
+    setIsCheckingOut(true);
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        showSuccess(
+          `Order #${
+            data.order.id
+          } placed successfully! Total: $${data.order.total.toFixed(2)}`
+        );
+        onClose();
+        // Navigate to dashboard orders tab
+        navigate("/dashboard?tab=orders");
+      } else {
+        showError(data.error || "Failed to place order");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      showError("Failed to place order. Please try again.");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   useEffect(() => {
     console.log("Cart drawer - isOpen changed:", isOpen);
@@ -208,10 +251,11 @@ export const PersistentCartDrawer: React.FC<PersistentCartDrawerProps> = ({
                 </div>
 
                 <button
-                  className="w-full bg-pink-600 text-white py-3 rounded-md hover:bg-pink-700 transition font-semibold"
-                  disabled={isLoading}
+                  onClick={handleCheckout}
+                  className="w-full bg-pink-600 text-white py-3 rounded-md hover:bg-pink-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isLoading || isCheckingOut || cart.length === 0}
                 >
-                  Proceed to Checkout
+                  {isCheckingOut ? "Processing..." : "Purchase Now"}
                 </button>
               </div>
             </>
