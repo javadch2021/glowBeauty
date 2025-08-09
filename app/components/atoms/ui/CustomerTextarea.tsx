@@ -32,7 +32,7 @@ export const CustomerTextarea: React.FC<CustomerTextareaProps> = ({
         placeholder={placeholder}
         rows={rows}
         required={required}
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-400"
+        className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent"
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useState } from "react";
 import { AuthCustomer } from "~/lib/models";
 
 interface CustomerAuthContextType {
@@ -14,6 +14,7 @@ interface CustomerAuthContextType {
     password: string
   ) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
+  updateCustomer: (customer: AuthCustomer) => void;
 }
 
 const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(
@@ -37,8 +38,10 @@ interface CustomerAuthProviderProps {
 
 export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({
   children,
-  customer,
+  customer: initialCustomer,
 }) => {
+  const [customer, setCustomer] = useState<AuthCustomer | null>(initialCustomer);
+  
   console.log("CustomerAuthProvider - Customer data:", customer);
   const isAuthenticated = customer !== null;
   console.log("CustomerAuthProvider - isAuthenticated:", isAuthenticated);
@@ -206,12 +209,17 @@ export const CustomerAuthProvider: React.FC<CustomerAuthProviderProps> = ({
     }
   };
 
+  const updateCustomer = (updatedCustomer: AuthCustomer) => {
+    setCustomer(updatedCustomer);
+  };
+
   const value = {
     customer,
     isAuthenticated,
     login,
     register,
     logout,
+    updateCustomer,
   };
 
   return (

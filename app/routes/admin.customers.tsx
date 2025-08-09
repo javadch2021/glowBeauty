@@ -1,4 +1,4 @@
-import type { MetaFunction, LoaderFunctionArgs } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/node";
 import { useState } from "react";
 import { useLoaderData } from "@remix-run/react";
 import { AdminLayout } from "~/components/separateUserSide/admin/AdminLayout";

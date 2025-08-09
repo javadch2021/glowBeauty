@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "@remix-run/react";
 import { useCustomerAuth } from "~/contexts/CustomerAuthContext";
 import { useNotification } from "~/contexts/NotificationContext";
-import { Order } from "~/lib/models";
+import { Order, Customer } from "~/lib/models";
 
 interface CustomerDashboardProps {
   initialTab?: string;
@@ -10,11 +11,14 @@ interface CustomerDashboardProps {
 export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
   initialTab = "profile",
 }) => {
-  const { customer, isAuthenticated } = useCustomerAuth();
-  const { showError } = useNotification();
+  const { customer, isAuthenticated, updateCustomer } = useCustomerAuth();
+  const { showError, showSuccess } = useNotification();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Customer>>({});
 
   // Fetch orders when orders tab is active
   useEffect(() => {
@@ -51,6 +55,68 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
       showError("Failed to fetch orders");
     } finally {
       setIsLoadingOrders(false);
+    }
+  };
+
+  const handleEditMode = () => {
+    if (!customer) return;
+
+    setEditForm({
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone || "",
+      address: customer.address || "",
+    });
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditForm({});
+  };
+
+  const handleFormChange = (field: keyof Customer, value: string) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSaveProfile = async () => {
+    if (!customer) return;
+
+    setIsUpdating(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", editForm.name || "");
+      formData.append("email", editForm.email || "");
+      formData.append("phone", editForm.phone || "");
+      formData.append("address", editForm.address || "");
+
+      const response = await fetch("/api/customer/profile", {
+        method: "PUT",
+        body: formData,
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Update the customer context with new data
+        if (updateCustomer) {
+          updateCustomer(data.customer);
+        }
+        setIsEditMode(false);
+        setEditForm({});
+        showSuccess("Profile updated successfully!");
+      } else {
+        showError(data.error || "Failed to update profile");
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      showError("Failed to update profile");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -103,16 +169,37 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 flex items-center gap-4">
-          <div className="w-16 h-16 bg-pink-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
-            {customer.name.charAt(0).toUpperCase()}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-pink-600 text-white rounded-full flex items-center justify-center text-2xl font-bold">
+              {customer.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">
+                Welcome back, {customer.name}
+              </h1>
+              <p className="text-gray-600">{customer.email}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">
-              Welcome back, {customer.name}
-            </h1>
-            <p className="text-gray-600">{customer.email}</p>
-          </div>
+          <Link
+            to="/"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Home
+          </Link>
         </div>
 
         {/* Tabs */}
@@ -136,45 +223,178 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
         <div className="bg-white rounded-b-lg shadow-lg p-6">
           {activeTab === "profile" && (
             <div>
-              <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name
-                  </label>
-                  <p className="text-gray-900">{customer.name}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <p className="text-gray-900">{customer.email}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone
-                  </label>
-                  <p className="text-gray-900">{customer.phone || "Not provided"}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Address
-                  </label>
-                  <p className="text-gray-900">{customer.address || "Not provided"}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Member Since
-                  </label>
-                  <p className="text-gray-900">{formatDate(customer.joinDate)}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Total Orders
-                  </label>
-                  <p className="text-gray-900">{customer.totalOrders}</p>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">Profile Information</h2>
+                {!isEditMode && (
+                  <button
+                    onClick={handleEditMode}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-pink-600 bg-pink-50 rounded-lg hover:bg-pink-100 transition-colors"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                    Edit Profile
+                  </button>
+                )}
               </div>
+
+              {isEditMode ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.name || ""}
+                        onChange={(e) =>
+                          handleFormChange("name", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email *
+                      </label>
+                      <input
+                        type="email"
+                        value={editForm.email || ""}
+                        onChange={(e) =>
+                          handleFormChange("email", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={editForm.phone || ""}
+                        onChange={(e) =>
+                          handleFormChange("phone", e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Address
+                      </label>
+                      <textarea
+                        value={editForm.address || ""}
+                        onChange={(e) =>
+                          handleFormChange("address", e.target.value)
+                        }
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={handleSaveProfile}
+                      disabled={isUpdating}
+                      className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isUpdating ? (
+                        <>
+                          <svg
+                            className="animate-spin h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Changes"
+                      )}
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      disabled={isUpdating}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Name
+                    </label>
+                    <p className="text-gray-900">{customer.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email
+                    </label>
+                    <p className="text-gray-900">{customer.email}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone
+                    </label>
+                    <p className="text-gray-900">
+                      {customer.phone || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address
+                    </label>
+                    <p className="text-gray-900">
+                      {customer.address || "Not provided"}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Member Since
+                    </label>
+                    <p className="text-gray-900">
+                      {formatDate(customer.joinDate)}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Total Orders
+                    </label>
+                    <p className="text-gray-900">{customer.totalOrders}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -251,7 +471,8 @@ export const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
                 <div className="flex justify-center items-center h-32">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
                 </div>
-              ) : orders.filter((order) => order.status === "delivered").length === 0 ? (
+              ) : orders.filter((order) => order.status === "delivered")
+                  .length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-gray-500">No completed purchases found</p>
                 </div>
