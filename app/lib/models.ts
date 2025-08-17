@@ -5,6 +5,7 @@ export interface BaseDocument {
   _id?: ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
+  isMockData?: boolean; // Flag to identify mock/demo data
 }
 
 // Product interfaces
@@ -24,6 +25,7 @@ export interface Product {
   price: number;
   image: string;
   category: string;
+  isMockData?: boolean;
 }
 
 // Customer interfaces
@@ -54,6 +56,7 @@ export interface Customer {
   totalSpent: number;
   isEmailVerified: boolean;
   lastLoginAt?: Date;
+  isMockData?: boolean;
 }
 
 // Authentication interfaces
@@ -148,6 +151,7 @@ export interface Order {
   shippingAddress: string;
   paymentMethod: string;
   trackingNumber?: string;
+  isMockData?: boolean;
 }
 
 // Activity interfaces
@@ -163,6 +167,7 @@ export interface ActivityItem {
   type: "order" | "customer" | "product";
   message: string;
   time: string;
+  isMockData?: boolean;
 }
 
 // Analytics interfaces

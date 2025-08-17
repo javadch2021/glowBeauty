@@ -137,10 +137,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     try {
       if (product) {
         onSave({ ...productData, id: product.id });
-        showSuccess(`${productData.name} updated successfully!`);
+        // Removed duplicate success notification - parent component handles this
       } else {
         onSave(productData);
-        showSuccess(`${productData.name} added successfully!`);
+        // Removed duplicate success notification - parent component handles this
       }
     } catch (error) {
       showError("Failed to save product. Please try again.");

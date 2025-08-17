@@ -42,7 +42,7 @@ async function main() {
       default:
         console.log("Usage: npm run seed [command]");
         console.log("Commands:");
-        console.log("  seed   - Seed database with initial data");
+        console.log("  seed   - Seed database with basic data");
         console.log("  clear  - Clear all data from database");
         console.log("  reset  - Clear and reseed database");
         console.log("  status - Check database status");

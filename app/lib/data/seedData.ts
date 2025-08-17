@@ -10,6 +10,7 @@ export const mockProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop",
     category: "skincare",
+    isMockData: true,
   },
   {
     id: 2,
@@ -20,6 +21,7 @@ export const mockProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=300&h=300&fit=crop",
     category: "makeup",
+    isMockData: true,
   },
   {
     id: 3,
@@ -30,6 +32,7 @@ export const mockProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1570194065650-d99fb4bedf0a?w=300&h=300&fit=crop",
     category: "skincare",
+    isMockData: true,
   },
   {
     id: 4,
@@ -40,6 +43,7 @@ export const mockProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=300&h=300&fit=crop",
     category: "makeup",
+    isMockData: true,
   },
   {
     id: 5,
@@ -50,6 +54,7 @@ export const mockProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop",
     category: "skincare",
+    isMockData: true,
   },
   {
     id: 6,
@@ -59,6 +64,7 @@ export const mockProducts: Product[] = [
     image:
       "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=300&fit=crop",
     category: "nails",
+    isMockData: true,
   },
 ];
 
@@ -72,6 +78,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-01-15",
     totalOrders: 8,
     totalSpent: 245.67,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 2,
@@ -82,6 +90,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-02-20",
     totalOrders: 12,
     totalSpent: 389.45,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 3,
@@ -92,6 +102,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-03-10",
     totalOrders: 6,
     totalSpent: 156.78,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 4,
@@ -102,6 +114,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-04-05",
     totalOrders: 15,
     totalSpent: 567.89,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 5,
@@ -112,6 +126,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-05-12",
     totalOrders: 9,
     totalSpent: 298.34,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 6,
@@ -122,6 +138,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-06-18",
     totalOrders: 11,
     totalSpent: 423.56,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 7,
@@ -132,6 +150,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-07-22",
     totalOrders: 7,
     totalSpent: 189.67,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 8,
@@ -142,6 +162,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-08-14",
     totalOrders: 13,
     totalSpent: 456.78,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 9,
@@ -152,6 +174,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-09-08",
     totalOrders: 5,
     totalSpent: 134.89,
+    isEmailVerified: true,
+    isMockData: true,
   },
   {
     id: 10,
@@ -162,6 +186,8 @@ export const mockCustomers: Customer[] = [
     joinDate: "2023-10-03",
     totalOrders: 10,
     totalSpent: 345.67,
+    isEmailVerified: true,
+    isMockData: true,
   },
 ];
 
@@ -202,6 +228,7 @@ export const mockOrders: Order[] = [
     shippingAddress: "123 Main St, New York, NY 10001",
     paymentMethod: "Credit Card",
     trackingNumber: "TRK123456789",
+    isMockData: true,
   },
   {
     id: 2,
@@ -239,6 +266,7 @@ export const mockOrders: Order[] = [
     shippingAddress: "456 Oak Ave, Los Angeles, CA 90210",
     paymentMethod: "PayPal",
     trackingNumber: "TRK987654321",
+    isMockData: true,
   },
   {
     id: 3,
@@ -266,6 +294,7 @@ export const mockOrders: Order[] = [
     shippingAddress: "789 Pine Rd, Chicago, IL 60601",
     paymentMethod: "Credit Card",
     trackingNumber: "TRK456789123",
+    isMockData: true,
   },
   {
     id: 4,
@@ -303,6 +332,7 @@ export const mockOrders: Order[] = [
     shippingAddress: "321 Elm St, Houston, TX 77001",
     paymentMethod: "Credit Card",
     trackingNumber: "TRK789123456",
+    isMockData: true,
   },
   {
     id: 5,
@@ -340,6 +370,7 @@ export const mockOrders: Order[] = [
     shippingAddress: "654 Maple Dr, Phoenix, AZ 85001",
     paymentMethod: "PayPal",
     trackingNumber: "TRK321654987",
+    isMockData: true,
   },
 ];
 
@@ -347,49 +378,57 @@ export const mockRecentActivity: ActivityItem[] = [
   {
     id: 1,
     type: "order",
-    message: "New order #1234 from John Doe",
+    message: "New order #1001 from Emma Johnson",
     time: "2 minutes ago",
+    isMockData: true,
   },
   {
     id: 2,
     type: "product",
-    message: "Product 'Facial Serum' updated",
+    message: "Product 'Hydrating Facial Serum' updated",
     time: "1 hour ago",
+    isMockData: true,
   },
   {
     id: 3,
     type: "customer",
-    message: "New customer registration: Jane Smith",
+    message: "New customer registration: Michael Chen",
     time: "2 hours ago",
+    isMockData: true,
   },
   {
     id: 4,
     type: "order",
-    message: "Order #1231 shipped to customer",
+    message: "Order #1002 shipped to customer",
     time: "3 hours ago",
+    isMockData: true,
   },
   {
     id: 5,
     type: "customer",
-    message: "Customer Mike Johnson updated profile",
+    message: "Customer Sarah Williams updated profile",
     time: "3 hours ago",
+    isMockData: true,
   },
   {
     id: 6,
     type: "product",
-    message: "New product 'Coffee Maker' added",
+    message: "New product 'Glow Highlighter' added",
     time: "4 hours ago",
+    isMockData: true,
   },
   {
     id: 7,
     type: "order",
-    message: "Order #1232 payment confirmed",
+    message: "Order #1003 payment confirmed",
     time: "5 hours ago",
+    isMockData: true,
   },
   {
     id: 8,
     type: "customer",
-    message: "Customer Sarah Wilson placed large order",
+    message: "Customer David Rodriguez placed large order",
     time: "6 hours ago",
+    isMockData: true,
   },
 ];
