@@ -3,10 +3,12 @@ import { Product, Customer, Order, AnalyticsData } from "~/lib/models";
 // Helper functions to calculate statistics
 export const calculateProductStats = (products: Product[]) => {
   const totalProducts = products.length;
-  const averagePrice = totalProducts > 0 
-    ? products.reduce((sum, product) => sum + product.price, 0) / totalProducts 
-    : 0;
-  const categories = new Set(products.map(product => product.category)).size;
+  const averagePrice =
+    totalProducts > 0
+      ? products.reduce((sum, product) => sum + product.price, 0) /
+        totalProducts
+      : 0;
+  const categories = new Set(products.map((product) => product.category)).size;
 
   return {
     totalProducts,
@@ -17,8 +19,12 @@ export const calculateProductStats = (products: Product[]) => {
 
 export const calculateCustomerStats = (customers: Customer[]) => {
   const totalCustomers = customers.length;
-  const totalRevenue = customers.reduce((sum, customer) => sum + customer.totalSpent, 0);
-  const averageOrderValue = totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
+  const totalRevenue = customers.reduce(
+    (sum, customer) => sum + customer.totalSpent,
+    0
+  );
+  const averageOrderValue =
+    totalCustomers > 0 ? totalRevenue / totalCustomers : 0;
 
   return {
     totalCustomers,
@@ -50,45 +56,29 @@ export const generateAnalyticsData = (
   orders: Order[],
   products: Product[]
 ): AnalyticsData => {
-  // Sales by month (last 6 months)
-  const salesByMonth = [
-    { month: "January 2024", sales: 45000, orders: 120 },
-    { month: "February 2024", sales: 52000, orders: 135 },
-    { month: "March 2024", sales: 48000, orders: 128 },
-    { month: "April 2024", sales: 61000, orders: 142 },
-    { month: "May 2024", sales: 55000, orders: 138 },
-    { month: "June 2024", sales: 58000, orders: 145 },
-  ];
+  // Generate sales by month based on actual order data (last 6 months)
+  const salesByMonth = generateSalesByMonth(orders);
 
-  // Top products (mock data for now)
-  const topProducts = [
-    { name: "Hydrating Facial Serum", sales: 15000, quantity: 500 },
-    { name: "Glow Highlighter", sales: 12000, quantity: 480 },
-    { name: "Revitalizing Eye Cream", sales: 10500, quantity: 300 },
-    { name: "Lip Gloss Trio", sales: 8000, quantity: 400 },
-    { name: "Clarifying Face Wash", sales: 7500, quantity: 395 },
-  ];
+  // Generate top products based on actual order data
+  const topProducts = generateTopProducts(orders, products);
 
-  // Orders by status
+  // Orders by status based on actual data
   const statusCounts = orders.reduce((acc, order) => {
     acc[order.status] = (acc[order.status] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
   const totalOrders = orders.length;
-  const ordersByStatus = Object.entries(statusCounts).map(([status, count]) => ({
-    status,
-    count,
-    percentage: totalOrders > 0 ? Math.round((count / totalOrders) * 100) : 0,
-  }));
+  const ordersByStatus = Object.entries(statusCounts).map(
+    ([status, count]) => ({
+      status,
+      count,
+      percentage: totalOrders > 0 ? Math.round((count / totalOrders) * 100) : 0,
+    })
+  );
 
-  // Revenue growth (mock data)
-  const revenueGrowth = [
-    { period: "Q1 2024", revenue: 145000, growth: 12 },
-    { period: "Q2 2024", revenue: 174000, growth: 20 },
-    { period: "Q3 2024", revenue: 161000, growth: -7 },
-    { period: "Q4 2024", revenue: 189000, growth: 17 },
-  ];
+  // Generate revenue growth based on actual data
+  const revenueGrowth = generateRevenueGrowth(orders);
 
   return {
     salesByMonth,
@@ -97,3 +87,152 @@ export const generateAnalyticsData = (
     revenueGrowth,
   };
 };
+
+// Helper function to generate sales by month from actual order data
+function generateSalesByMonth(orders: Order[]) {
+  const months = [];
+  const currentDate = new Date();
+
+  for (let i = 5; i >= 0; i--) {
+    const date = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() - i,
+      1
+    );
+    const monthName = date.toLocaleDateString("en-US", {
+      month: "long",
+      year: "numeric",
+    });
+
+    // Filter orders for this month
+    const monthOrders = orders.filter((order) => {
+      const orderDate = new Date(order.orderDate);
+      return (
+        orderDate.getMonth() === date.getMonth() &&
+        orderDate.getFullYear() === date.getFullYear()
+      );
+    });
+
+    const sales = monthOrders.reduce((sum, order) => sum + order.total, 0);
+    const orderCount = monthOrders.length;
+
+    months.push({
+      month: monthName,
+      sales: Math.round(sales * 100) / 100,
+      orders: orderCount,
+    });
+  }
+
+  return months;
+}
+
+// Helper function to generate top products from actual order data
+function generateTopProducts(orders: Order[], products: Product[]) {
+  // Create a map to track product sales
+  const productSales = new Map<
+    number,
+    { name: string; sales: number; quantity: number }
+  >();
+
+  // Initialize all products with zero sales
+  products.forEach((product) => {
+    productSales.set(product.id, {
+      name: product.name,
+      sales: 0,
+      quantity: 0,
+    });
+  });
+
+  // Calculate actual sales from orders
+  orders.forEach((order) => {
+    order.items.forEach((item) => {
+      const existing = productSales.get(item.productId);
+      if (existing) {
+        existing.sales += item.total;
+        existing.quantity += item.quantity;
+      }
+    });
+  });
+
+  // Convert to array and sort by sales
+  const topProducts = Array.from(productSales.values())
+    .filter((product) => product.sales > 0) // Only show products with sales
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 5) // Top 5 products
+    .map((product) => ({
+      ...product,
+      sales: Math.round(product.sales * 100) / 100,
+    }));
+
+  return topProducts;
+}
+
+// Helper function to generate revenue growth from actual data
+function generateRevenueGrowth(orders: Order[]) {
+  const quarters = [];
+  const currentDate = new Date();
+
+  for (let i = 3; i >= 0; i--) {
+    const year = currentDate.getFullYear();
+    const quarter = Math.floor(currentDate.getMonth() / 3) + 1 - i;
+
+    if (quarter <= 0) {
+      // Handle previous year
+      const prevYear = year - 1;
+      const prevQuarter = quarter + 4;
+      const quarterName = `Q${prevQuarter} ${prevYear}`;
+
+      // Filter orders for this quarter
+      const quarterOrders = orders.filter((order) => {
+        const orderDate = new Date(order.orderDate);
+        const orderQuarter = Math.floor(orderDate.getMonth() / 3) + 1;
+        return (
+          orderDate.getFullYear() === prevYear && orderQuarter === prevQuarter
+        );
+      });
+
+      const revenue = quarterOrders.reduce(
+        (sum, order) => sum + order.total,
+        0
+      );
+
+      quarters.push({
+        period: quarterName,
+        revenue: Math.round(revenue * 100) / 100,
+        growth: 0, // Can't calculate growth for historical data without more context
+      });
+    } else {
+      const quarterName = `Q${quarter} ${year}`;
+
+      // Filter orders for this quarter
+      const quarterOrders = orders.filter((order) => {
+        const orderDate = new Date(order.orderDate);
+        const orderQuarter = Math.floor(orderDate.getMonth() / 3) + 1;
+        return orderDate.getFullYear() === year && orderQuarter === quarter;
+      });
+
+      const revenue = quarterOrders.reduce(
+        (sum, order) => sum + order.total,
+        0
+      );
+
+      // Calculate growth if we have previous quarter data
+      let growth = 0;
+      if (quarters.length > 0) {
+        const prevRevenue = quarters[quarters.length - 1].revenue;
+        growth =
+          prevRevenue > 0
+            ? Math.round(((revenue - prevRevenue) / prevRevenue) * 100)
+            : 0;
+      }
+
+      quarters.push({
+        period: quarterName,
+        revenue: Math.round(revenue * 100) / 100,
+        growth,
+      });
+    }
+  }
+
+  return quarters;
+}

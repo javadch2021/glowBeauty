@@ -5,12 +5,6 @@ import {
   orderService,
   activityService,
 } from "./services.server";
-import {
-  mockProducts,
-  mockCustomers,
-  mockOrders,
-  mockRecentActivity,
-} from "./data/seedData";
 
 /**
  * Seed the database with initial data
@@ -37,65 +31,23 @@ export async function seedDatabase(): Promise<void> {
 
     console.log("Database is empty. Starting seeding process...");
 
-    // Seed products
-    console.log("Seeding products...");
-    for (const product of mockProducts) {
-      await productService.create({
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        image: product.image,
-        category: product.category,
-      });
-    }
-    console.log(`✓ Seeded ${mockProducts.length} products`);
+    // Seed basic products (minimal required data)
+    console.log("Seeding basic products...");
+    const basicProducts = [
+      {
+        name: "Sample Product",
+        description: "A sample product for demonstration",
+        price: 19.99,
+        image:
+          "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=300&h=300&fit=crop",
+        category: "general",
+      },
+    ];
 
-    // Seed customers
-    console.log("Seeding customers...");
-    for (const customer of mockCustomers) {
-      await customerService.create({
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        address: customer.address,
-        joinDate: customer.joinDate,
-        totalOrders: customer.totalOrders,
-        totalSpent: customer.totalSpent,
-      });
+    for (const product of basicProducts) {
+      await productService.create(product);
     }
-    console.log(`✓ Seeded ${mockCustomers.length} customers`);
-
-    // Seed orders
-    console.log("Seeding orders...");
-    for (const order of mockOrders) {
-      await orderService.create({
-        customerId: order.customerId,
-        customerName: order.customerName,
-        customerEmail: order.customerEmail,
-        orderDate: order.orderDate,
-        status: order.status,
-        items: order.items,
-        subtotal: order.subtotal,
-        tax: order.tax,
-        shipping: order.shipping,
-        total: order.total,
-        shippingAddress: order.shippingAddress,
-        paymentMethod: order.paymentMethod,
-        trackingNumber: order.trackingNumber,
-      });
-    }
-    console.log(`✓ Seeded ${mockOrders.length} orders`);
-
-    // Seed activity
-    console.log("Seeding activity...");
-    for (const activity of mockRecentActivity) {
-      await activityService.create({
-        type: activity.type,
-        message: activity.message,
-        time: activity.time,
-      });
-    }
-    console.log(`✓ Seeded ${mockRecentActivity.length} activity items`);
+    console.log(`✓ Seeded ${basicProducts.length} basic products`);
 
     console.log("✅ Database seeding completed successfully!");
 
@@ -103,13 +55,11 @@ export async function seedDatabase(): Promise<void> {
     const finalProductCount = await productService.getCount();
     const finalCustomerCount = await customerService.getCount();
     const finalOrderCount = await orderService.getCount();
-    const finalActivityCount = await activityService.getCount();
 
     console.log("Final counts:");
     console.log(`  Products: ${finalProductCount}`);
     console.log(`  Customers: ${finalCustomerCount}`);
     console.log(`  Orders: ${finalOrderCount}`);
-    console.log(`  Activity items: ${finalActivityCount}`);
   } catch (error) {
     console.error("Error seeding database:", error);
     throw new Error(

@@ -13,7 +13,7 @@
     "start:compiled": "cross-env NODE_ENV=production node ./build/server.js",
     "typecheck": "tsc",
     "typecheck:server": "tsc --project tsconfig.server.json --noEmit",
-    "seed": "tsx scripts/seed.ts",
+    "seed": "tsx scripts/seed.ts seed",
     "seed:clear": "tsx scripts/seed.ts clear",
     "seed:reset": "tsx scripts/seed.ts reset",
     "seed:status": "tsx scripts/seed.ts status"

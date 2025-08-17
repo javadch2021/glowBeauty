@@ -6,6 +6,7 @@ import {
   productService,
   customerService,
   activityService,
+  orderService,
 } from "~/lib/services.server";
 import {
   calculateProductStats,
@@ -24,15 +25,17 @@ export const meta: MetaFunction = () => {
 
 export const loader = async () => {
   try {
-    const [products, customers, recentActivity] = await Promise.all([
+    const [products, customers, orders, recentActivity] = await Promise.all([
       productService.getAll(),
       customerService.getAll(),
+      orderService.getAll(),
       activityService.getRecent(4),
     ]);
 
     return json({
       products,
       customers,
+      orders,
       recentActivity,
       productStats: calculateProductStats(products),
       customerStats: calculateCustomerStats(customers),
@@ -43,6 +46,7 @@ export const loader = async () => {
       {
         products: [],
         customers: [],
+        orders: [],
         recentActivity: [],
         productStats: { totalProducts: 0, averagePrice: 0, categories: 0 },
         customerStats: {
@@ -59,15 +63,15 @@ export const loader = async () => {
 
 export default function AdminDashboard() {
   // Use loader data
-  const { recentActivity, productStats, customerStats } =
+  const { recentActivity, productStats, customerStats, orders } =
     useLoaderData<typeof loader>();
 
   const stats = [
     {
       name: "Total Products",
       value: productStats.totalProducts.toString(),
-      change: "+12%",
-      changeType: "increase" as const,
+      change: null, // Removed fake "+12%" - no growth data available
+      changeType: null as const,
       icon: (
         <svg
           className="w-6 h-6"
@@ -87,8 +91,8 @@ export default function AdminDashboard() {
     {
       name: "Total Customers",
       value: customerStats.totalCustomers.toString(),
-      change: "+8%",
-      changeType: "increase" as const,
+      change: null, // Removed fake "+8%" - no growth data available
+      changeType: null as const,
       icon: (
         <svg
           className="w-6 h-6"
@@ -107,9 +111,9 @@ export default function AdminDashboard() {
     },
     {
       name: "Total Orders",
-      value: "24", // You can replace this with actual order count from your data
-      change: "+23%",
-      changeType: "increase" as const,
+      value: orders.length.toString(), // Real order count from database
+      change: null, // Removed fake "+23%" - no growth data available
+      changeType: null as const,
       icon: (
         <svg
           className="w-6 h-6"
@@ -129,8 +133,8 @@ export default function AdminDashboard() {
     {
       name: "Revenue",
       value: `$${customerStats.totalRevenue.toFixed(2)}`,
-      change: "+15%",
-      changeType: "increase" as const,
+      change: null, // Removed fake "+15%" - no growth data available
+      changeType: null as const,
       icon: (
         <svg
           className="w-6 h-6"
@@ -173,46 +177,48 @@ export default function AdminDashboard() {
                         <div className="text-2xl font-semibold text-gray-900">
                           {stat.value}
                         </div>
-                        <div
-                          className={`ml-2 flex items-baseline text-sm font-semibold ${
-                            stat.changeType === "increase"
-                              ? "text-green-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          {stat.changeType === "increase" ? (
-                            <svg
-                              className="self-center flex-shrink-0 h-5 w-5 text-green-500"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          ) : (
-                            <svg
-                              className="self-center flex-shrink-0 h-5 w-5 text-red-500"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                          <span className="sr-only">
-                            {stat.changeType === "increase"
-                              ? "Increased"
-                              : "Decreased"}{" "}
-                            by
-                          </span>
-                          {stat.change}
-                        </div>
+                        {stat.change && stat.changeType && (
+                          <div
+                            className={`ml-2 flex items-baseline text-sm font-semibold ${
+                              stat.changeType === "increase"
+                                ? "text-green-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            {stat.changeType === "increase" ? (
+                              <svg
+                                className="self-center flex-shrink-0 h-5 w-5 text-green-500"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                className="self-center flex-shrink-0 h-5 w-5 text-red-500"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                            )}
+                            <span className="sr-only">
+                              {stat.changeType === "increase"
+                                ? "Increased"
+                                : "Decreased"}{" "}
+                              by
+                            </span>
+                            {stat.change}
+                          </div>
+                        )}
                       </dd>
                     </dl>
                   </div>
